@@ -1,6 +1,6 @@
 import React from 'react';
 import '../styles/Hero.css';
-import profileImage from '../assets/profilePicture.PNG'; // Replace with your image path
+import profileImage from '../assets/profilePicture.PNG'; 
 
 function Hero() {
   return (

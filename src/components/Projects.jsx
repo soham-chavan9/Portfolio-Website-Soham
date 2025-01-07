@@ -3,37 +3,26 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import "../styles/Projects.css";
 
+import fundFlowImage from "../assets/fundFlowImage.jpg";
+import portfolioImage from "../assets/portfolioImage.jpg";
+import universityManagementImage from "../assets/universityManagementImage.jpg";
+
 function Projects() {
   const projects = [
     {
-      title: "E-Commerce Website",
-      description: "A responsive e-commerce platform with shopping cart functionality.",
-      image: "https://via.placeholder.com/300x200",
-      link: "#",
+      title: "Fund Flow",
+      description: "A full-stack web application for expense tracking and budgeting.",
+      image: fundFlowImage,
     },
     {
       title: "Portfolio Website",
       description: "A sleek, personal portfolio built with React.",
-      image: "https://via.placeholder.com/300x200",
-      link: "#",
+      image: portfolioImage,
     },
     {
-      title: "Weather App",
-      description: "A weather forecasting app using OpenWeatherMap API.",
-      image: "https://via.placeholder.com/300x200",
-      link: "#",
-    },
-    {
-      title: "Blog Website",
-      description: "A blogging platform with content management features.",
-      image: "https://via.placeholder.com/300x200",
-      link: "#",
-    },
-    {
-      title: "Task Tracker",
-      description: "A task management tool with a user-friendly interface.",
-      image: "https://via.placeholder.com/300x200",
-      link: "#",
+      title: "University Management System",
+      description: "Designed an integrated University Management System to address various inefficiencies in campus operations, including class registration, grade management, and auxiliary services.",
+      image: universityManagementImage,
     },
   ];
 
