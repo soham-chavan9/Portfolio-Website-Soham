@@ -1,0 +1,91 @@
+.projects {
+  padding: 2rem 3rem; /* Increased spacing */
+  background-color: #000000;
+  color: #ffffff;
+  text-align: center;
+  padding-bottom: 4.5rem;
+}
+
+.projects-title {
+  font-size: 2.5rem;
+  margin-bottom: 3.5rem;
+}
+
+.project-card {
+  background: linear-gradient(145deg, #212121, #1a1a1a);
+  border: 1px solid #333;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.project-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 128, 255, 0.3);
+}
+
+.card-img-top {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.card-text {
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  color: #b3b3b3;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border: none;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+/* Carousel Indicators */
+.carousel-indicators {
+  position: absolute;
+  bottom: -60px;
+  margin-right: 19%;
+  padding-top: 20px;
+  left: 58%;
+  transform: translateX(-335%);
+  display: flex;
+  justify-content: center;
+  gap: 0.7rem;
+}
+
+.carousel-indicators button {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: none;
+  opacity: 0.5;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.carousel-indicators button:hover {
+  transform: scale(1.2);
+}
+
+.carousel-indicators button.active {
+  opacity: 1;
+  background-color: #007bff;
+}
+
+/* Section Interactivity */
+.projects:hover .carousel-indicators button {
+  transform: scale(1); /* Hover scale effect reset */
+}

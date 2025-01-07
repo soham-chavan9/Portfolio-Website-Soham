@@ -1,0 +1,74 @@
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100vh;
+  padding: 0 10%;
+  background: linear-gradient(145deg, #0c0242, #0019fd, #48dbfb, #1dd1a1);
+  background-size: 300% 300%;
+  animation: waveGradient 10s ease infinite; /* Wave-like smooth animation */
+  color: #ffffff;
+}
+
+@keyframes waveGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.hero-left {
+  max-width: 50%;
+  text-align: left;
+  transition: transform 0.4s, box-shadow 0.3s;
+ 
+}
+
+.hero-left:hover{
+  transform: scale(1.1);
+}
+
+.hero-left h1 {
+  font-size: 3.2rem;
+  font-weight: 800;
+  margin-bottom: 1.2rem;
+}
+
+.hero-left p {
+  font-size: 1.2rem;
+  margin-bottom: 2.2rem;
+  color: #f5f5f5;
+}
+
+.hero-button {
+  padding: 0.8rem 2rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background-color 0.3s, transform 0.3s, color 0.3s;
+}
+
+.hero-button:hover {
+  background-color: #ffffff;
+  color: #000000;
+  transform: scale(1.08);
+}
+
+.hero-right {
+  max-width: 40%;
+  text-align: center;
+}
+
+.hero-image {
+  width: 100%;
+  max-width: 320px;
+ 
+}
