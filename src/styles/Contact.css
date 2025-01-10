@@ -1,9 +1,8 @@
 .contact {
   padding: 2rem;
-  background: linear-gradient(145deg, #212121, #1a1a1a);
+  background-color: #ffffff;
   color: #ffffff;
   text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
   border-radius: 12px;
   margin: 2rem auto;
   max-width: 800px;
@@ -12,7 +11,7 @@
 .contact h2 {
   font-size: 2.5rem;
   margin-bottom: 1rem;
-  color: #ffffff;
+  color: #000000;
   font-weight: 700;
 }
 

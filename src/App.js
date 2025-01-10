@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
 import Projects from './components/Projects';
+import EducationExperience from "./components/EducationExperience";
 import Contact from './components/Contact';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -18,6 +19,7 @@ function App() {
       <Hero />
       <About />
       <Projects />
+      <EducationExperience />
       <Contact />
     </div>
   );

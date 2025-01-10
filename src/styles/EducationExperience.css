@@ -1,0 +1,63 @@
+.education-experience {
+    background-color: #000000;
+    color: #f0f0f0;
+    margin-bottom: 2.5%;
+  }
+  
+  .section-title {
+    padding-top: 1.5%;
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #ffffff;
+  }
+  
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-left: 2.5%;
+    margin-right: 2.5%;
+    margin-bottom: 2.5%;
+    justify-content: center;
+  }
+  
+  .education-item, .work-item {
+    padding: 1.5rem;
+    border-radius: 10px;
+    background-color: #000000;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-bottom: 2.5%;
+  }
+  
+  .education-item h3, .work-item h3 {
+    font-size: 1.5rem;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+  }
+  
+  .degree, .company {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  
+  .education-item span, .work-item span {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-top: 0.5rem;
+  }
+  
+  .work-item ul {
+    list-style-type: disc;
+    margin: 1rem 0 0 1.5rem;
+    color: #ddd;
+  }
+  
+  .work-item ul li {
+    margin-bottom: 0.5rem;
+    text-align: left;
+  }
+  
