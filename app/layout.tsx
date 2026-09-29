@@ -19,13 +19,13 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: `${site.name} — mobile and backend engineer`,
+  title: `${site.name}, Software Engineer`,
   description:
-    "Engineer working on React Native release infrastructure, iOS native modules, and NestJS backends. Writeups on shipping and hardening a production mobile app.",
+    "Soham Chavan, full-stack engineer shipping mobile, backend, and AI systems end to end.",
   openGraph: {
-    title: `${site.name} — mobile and backend engineer`,
+    title: `${site.name}, Software Engineer`,
     description:
-      "Writeups on release pipelines, on-device moderation, and store compliance for a production React Native app.",
+      "Mobile, backend, and AI systems, from database schema to App Store release.",
     type: "website",
   },
 };

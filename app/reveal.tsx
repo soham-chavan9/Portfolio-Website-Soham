@@ -7,11 +7,15 @@ import { useEffect, useRef, useState } from "react";
 export default function Reveal({
   children,
   delay = 0,
+  as = "div",
+  className = "",
 }: {
   children: React.ReactNode;
   delay?: number;
+  as?: "div" | "li";
+  className?: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement | HTMLLIElement>(null);
   const [shown, setShown] = useState(false);
 
   useEffect(() => {
@@ -41,10 +45,26 @@ export default function Reveal({
     return () => io.disconnect();
   }, []);
 
+  const classes = [shown ? "reveal is-in" : "reveal", className]
+    .filter(Boolean)
+    .join(" ");
+
+  if (as === "li") {
+    return (
+      <li
+        ref={ref as React.RefObject<HTMLLIElement>}
+        className={classes}
+        style={{ transitionDelay: `${delay}ms` }}
+      >
+        {children}
+      </li>
+    );
+  }
+
   return (
     <div
-      ref={ref}
-      className={shown ? "reveal is-in" : "reveal"}
+      ref={ref as React.RefObject<HTMLDivElement>}
+      className={classes}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}

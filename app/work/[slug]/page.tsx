@@ -69,13 +69,6 @@ export default async function WriteupPage({
         {w.body.map((block, i) => {
           if (block.kind === "h") return <h2 key={i}>{block.text}</h2>;
           if (block.kind === "code") return <pre key={i}>{block.text}</pre>;
-          if (block.kind === "todo")
-            return (
-              <aside className="todo" key={i}>
-                <b>Note to self, delete before publishing</b>
-                {block.text}
-              </aside>
-            );
           return <p key={i}>{block.text}</p>;
         })}
 
