@@ -1,0 +1,647 @@
+:root {
+  /* Jewel tones. The ink is a midnight amethyst, not a black — the colour is
+     the point, and everything else is tuned quiet around it. */
+  --paper: #faf9fc;
+  --paper-deep: #f3f1f8;
+  --surface: #ffffff;
+
+  --ink: #1a1636;
+  --ink-2: #4a4370;
+  --ink-3: #837ca0;
+
+  --rule: #e4e0ef;
+  --rule-strong: #c2bad9;
+
+  --royal: #3a2e8c; /* amethyst — iOS track, primary links */
+  --emerald: #1c6b55; /* Android track */
+  --gold: #9c7c2e; /* the one precious accent: motion and hover only */
+  --gold-soft: rgba(156, 124, 46, 0.16);
+
+  --t-meta: 0.735rem;
+  --t-small: 0.87rem;
+  --t-body: 1rem;
+  --t-21: 1.24rem;
+  --t-27: 1.6rem;
+  --t-34: 2.1rem;
+  --t-44: 3rem;
+
+  --measure: 64ch;
+  --frame: 940px;
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 17px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: var(--t-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--royal);
+  outline-offset: 4px;
+}
+
+.frame {
+  max-width: var(--frame);
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+/* ------------------------------------------------------------------ motion */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sweep {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* One orchestrated page-load sequence, then the page is still. */
+.masthead {
+  animation: fade 0.7s var(--ease) both;
+}
+
+.hero h1 {
+  animation: rise 0.9s var(--ease) 0.08s both;
+}
+
+.hero-intro {
+  animation: rise 0.9s var(--ease) 0.2s both;
+}
+
+.tracks {
+  animation: rise 0.9s var(--ease) 0.32s both;
+}
+
+/* Scroll-revealed rows, driven by the Reveal component. */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.6s var(--ease),
+    transform 0.6s var(--ease);
+}
+
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* A gold rule that draws itself under a link on hover. */
+.draw {
+  position: relative;
+  display: inline-block;
+}
+
+.draw::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 1px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.4s var(--ease);
+}
+
+.draw:hover::after,
+.draw:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+/* --------------------------------------------------------------- masthead */
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 36px 0 0;
+}
+
+.wordmark {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: 0.14em;
+  text-transform: lowercase;
+  color: var(--ink-2);
+}
+
+.masthead nav {
+  display: flex;
+  gap: 22px;
+}
+
+.masthead nav a {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  transition: color 0.3s var(--ease);
+}
+
+.masthead nav a:hover {
+  color: var(--ink);
+}
+
+/* ------------------------------------------------------------------- hero */
+
+.hero {
+  padding: 92px 0 0;
+}
+
+.hero h1 {
+  margin: 0;
+  max-width: 21ch;
+  font-size: var(--t-44);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+.hero-intro {
+  margin: 28px 0 0;
+  max-width: var(--measure);
+  font-size: var(--t-21);
+  line-height: 1.62;
+  color: var(--ink-2);
+}
+
+/* The memorable element: the release block rolls out on load, one track at a
+   time, a gold line sweeping under each as it lands. */
+
+.tracks {
+  margin: 62px 0 0;
+  border-top: 1px solid var(--ink);
+}
+
+.track {
+  position: relative;
+  display: grid;
+  grid-template-columns: 6rem 5rem 1fr;
+  gap: 22px;
+  align-items: baseline;
+  padding: 17px 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  border-bottom: 1px solid var(--rule);
+}
+
+.track::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--gold);
+  transform-origin: left center;
+  animation: sweep 1.2s var(--ease) both;
+  animation-delay: var(--d, 0.6s);
+}
+
+.track-platform {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.track-platform[data-p="ios"] {
+  color: var(--royal);
+}
+
+.track-platform[data-p="android"] {
+  color: var(--emerald);
+}
+
+.track-version {
+  font-variant-numeric: tabular-nums;
+}
+
+.track-detail {
+  color: var(--ink-3);
+}
+
+.track-note {
+  display: block;
+  margin-top: 5px;
+  font-family: var(--font-serif);
+  font-size: var(--t-small);
+  letter-spacing: 0;
+  color: var(--ink-2);
+}
+
+/* --------------------------------------------------------------- sections */
+
+.section {
+  padding: 104px 0 0;
+}
+
+.section-lede {
+  max-width: var(--measure);
+  margin: 0 0 44px;
+  font-size: var(--t-21);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.section-lede strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------- shipped */
+
+.ship-list {
+  border-top: 1px solid var(--ink);
+}
+
+.ship {
+  position: relative;
+  display: grid;
+  grid-template-columns: 9rem 1fr;
+  gap: 30px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--rule);
+  transition: border-color 0.4s var(--ease);
+}
+
+.ship::before {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--gold);
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 0.45s var(--ease);
+}
+
+.ship:hover::before {
+  transform: scaleY(1);
+}
+
+.ship:hover {
+  border-color: var(--rule-strong);
+}
+
+.ship-when {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  padding-top: 8px;
+  letter-spacing: 0.03em;
+}
+
+.ship-where {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-2);
+}
+
+.ship-title {
+  margin: 0;
+  font-size: var(--t-27);
+  font-weight: 500;
+  line-height: 1.22;
+  letter-spacing: -0.008em;
+}
+
+.ship-title a {
+  transition: color 0.3s var(--ease);
+}
+
+.ship-title a:hover {
+  color: var(--royal);
+}
+
+.ship-summary {
+  margin: 10px 0 0;
+  max-width: var(--measure);
+  color: var(--ink-2);
+}
+
+.ship-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 9px 20px;
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+}
+
+.platforms {
+  display: flex;
+  gap: 10px;
+}
+
+.platform {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.platform[data-p="ios"] {
+  color: var(--royal);
+}
+
+.platform[data-p="android"] {
+  color: var(--emerald);
+}
+
+.platform[data-p="server"],
+.platform[data-p="web"] {
+  color: var(--ink-3);
+}
+
+.read-link {
+  color: var(--royal);
+}
+
+/* ------------------------------------------------------------------ prose */
+
+.prose {
+  max-width: var(--measure);
+}
+
+.prose p {
+  margin: 0 0 1.2em;
+  color: var(--ink-2);
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.prose a {
+  color: var(--ink);
+}
+
+/* ----------------------------------------------------------------- footer */
+
+.footer {
+  margin-top: 120px;
+  border-top: 1px solid var(--ink);
+  padding: 28px 0 78px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: 0.03em;
+  color: var(--ink-2);
+}
+
+.footer .spacer {
+  flex: 1;
+}
+
+.footer .quiet {
+  color: var(--ink-3);
+}
+
+/* ---------------------------------------------------------- writeup pages */
+
+.backlink {
+  display: inline-block;
+  margin: 36px 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  animation: fade 0.7s var(--ease) both;
+}
+
+.writeup-head {
+  padding: 66px 0 0;
+}
+
+.writeup-head h1 {
+  margin: 0;
+  max-width: 24ch;
+  font-size: var(--t-34);
+  font-weight: 500;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  animation: rise 0.9s var(--ease) 0.08s both;
+}
+
+.deck {
+  margin: 24px 0 0;
+  max-width: var(--measure);
+  font-size: var(--t-21);
+  line-height: 1.6;
+  color: var(--ink-2);
+  animation: rise 0.9s var(--ease) 0.2s both;
+}
+
+.meta {
+  margin: 48px 0 0;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  animation: rise 0.9s var(--ease) 0.32s both;
+}
+
+.meta div {
+  padding: 16px 20px 17px 0;
+}
+
+.meta dt {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+  margin: 0 0 6px;
+}
+
+.meta dd {
+  margin: 0;
+  font-size: var(--t-small);
+  color: var(--ink);
+}
+
+.writeup-body {
+  max-width: var(--measure);
+  padding: 56px 0 0;
+}
+
+.writeup-body h2 {
+  margin: 52px 0 16px;
+  font-size: var(--t-21);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.writeup-body p {
+  margin: 0 0 1.25em;
+  line-height: 1.72;
+  color: #2a2550;
+}
+
+.writeup-body pre {
+  margin: 30px 0 34px;
+  padding: 22px 24px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--royal);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  line-height: 1.62;
+  color: var(--ink);
+}
+
+.todo {
+  margin: 30px 0;
+  padding: 17px 19px;
+  background: var(--gold-soft);
+  border: 1px dashed var(--gold);
+  font-size: var(--t-small);
+  color: #6b5416;
+}
+
+.todo b {
+  display: block;
+  margin-bottom: 5px;
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: 0.04em;
+}
+
+.next {
+  max-width: var(--measure);
+  margin-top: 74px;
+  padding-top: 26px;
+  border-top: 1px solid var(--rule);
+  font-size: var(--t-small);
+  color: var(--ink-2);
+}
+
+/* ------------------------------------------------------------- responsive */
+
+@media (max-width: 760px) {
+  html {
+    font-size: 16px;
+  }
+
+  :root {
+    --t-44: 2.2rem;
+    --t-34: 1.78rem;
+    --t-27: 1.4rem;
+  }
+
+  .frame {
+    padding: 0 20px;
+  }
+
+  .hero {
+    padding-top: 58px;
+  }
+
+  .hero h1 {
+    max-width: none;
+  }
+
+  .ship {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .ship::before {
+    left: -10px;
+  }
+
+  .ship-when {
+    padding-top: 0;
+  }
+
+  .ship-where {
+    display: inline;
+    margin-left: 12px;
+  }
+
+  .track {
+    grid-template-columns: 4.2rem 4rem 1fr;
+    gap: 14px;
+  }
+
+  .meta {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .section {
+    padding-top: 70px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .track::after,
+  .ship::before {
+    transform: none;
+  }
+}
