@@ -22,9 +22,9 @@ export const featuredWork = {
   summary:
     "OurFreedom.ai is a paid platform that keeps families connected to incarcerated loved ones. I led both the backend and the mobile app, and these are three systems I designed and shipped.",
   role:
-    "Tech lead and maintainer across a NestJS and MongoDB backend and a React Native and Expo app for iOS and Android. I merge the release line, run code review for about 20 contributors, and own everything between a schema change and a store release.",
+    "Team lead and maintainer across a NestJS and MongoDB backend and a React Native and Expo app for iOS and Android. I merge the release line, run code review for about 20 contributors, and own everything between a schema change and a store release.",
   facts: [
-    { label: "Role", value: "Full-stack engineer, tech lead" },
+    { label: "Role", value: "Full-stack engineer, team lead" },
     { label: "Timeline", value: "Jan 2026 to Jun 2026" },
     { label: "Team", value: "About 20 contributors" },
     { label: "Stack", value: "NestJS, MongoDB, Expo, Swift" },
@@ -137,7 +137,7 @@ export const experience = [
     title: "Full-Stack Software Engineer, Mobile and Backend",
     org: "OurFreedom.ai",
     points: [
-      "Became tech lead and maintainer on both the backend and the mobile app within about four months.",
+      "Became team lead and maintainer on both the backend and the mobile app within about four months.",
       "Owned iOS release hardening: age verification with US-state resolution, Apple Sign-In, env allowlisting, Stripe bootstrap, AdMob with SKAdNetwork and ATT. No release rejections.",
       "Ran code review, PR management, deploys, and CI/CD on GitHub Actions and Vercel in three-week sprints, with zero-downtime deployments.",
     ],
@@ -173,8 +173,7 @@ export const projects = [
     built:
       "PDF ingestion, chunking, FAISS retrieval, and cited answers, with fuzzy matching and fallbacks against empty responses.",
     stack: ["Python", "FastAPI", "LangChain", "FAISS", "OpenAI", "Next.js"],
-    image:
-      "https://framerusercontent.com/images/dnOS2XKJmTSLyeBfz6AwfJt3s.png?width=1024&height=1024",
+    image: "/lumina.png",
     alt: "Lumina interface",
   },
   {
@@ -187,8 +186,7 @@ export const projects = [
     built:
       "Expense, budget, and shopping-list CRUD with an ECharts dashboard, a Gemini assistant, alerts, and i18next.",
     stack: ["React", "Next.js", "Redux", "MongoDB", "JWT", "Gemini", "ECharts"],
-    image:
-      "https://framerusercontent.com/images/kwV2lhFCzyqiRqTkQxavBGrzyw.png?width=1024&height=1024",
+    image: "/fundflow.png",
     alt: "FundFlow dashboard",
   },
   {
@@ -202,8 +200,7 @@ export const projects = [
     built:
       "A JavaFX task manager with SQLite persistence, JDBC data access, and OpenAI-assisted scheduling.",
     stack: ["Java", "JavaFX", "SQLite", "JDBC", "OpenAI API"],
-    image:
-      "https://framerusercontent.com/images/ecKsniafMvMEyp7j4Br5vSvBur4.png?width=1024&height=1024",
+    image: "/tasktreak.png",
     alt: "TaskTreak interface",
   },
 ];
@@ -222,8 +219,7 @@ export const testimonials = [
     name: "Vipul Shah",
     role: "Engineering lead",
     initials: "VS",
-    image:
-      "https://framerusercontent.com/images/97eJBZEapDBVCNjO3SfMJi6mg.png?width=200&height=200",
+    image: "/vipul-shah.png",
   },
 ];
 

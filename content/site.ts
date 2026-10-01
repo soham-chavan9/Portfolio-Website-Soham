@@ -15,8 +15,7 @@ export const site = {
   linkedin: "https://www.linkedin.com/in/soham-chavan9/",
   resumeHref: "/Soham_Chavan_Resume.pdf",
   location: "Boston, MA",
-  profileImage:
-    "https://framerusercontent.com/images/zqqEVLuZW1agY3HCrgc6QssoprQ.png?width=1024&height=1024",
+  profileImage: "/soham-chavan.png",
   stats: [
     {
       value: "2+",
@@ -24,7 +23,7 @@ export const site = {
     },
     {
       value: "110+",
-      label: "commits as tech lead at OurFreedom.ai",
+      label: "commits as team lead at OurFreedom.ai",
     },
     {
       value: "~40",

@@ -1,6 +1,7 @@
 import ContactActions from "./contact-actions";
 import FeaturedWork from "./featured-work";
 import Reveal from "./reveal";
+import ThemeToggle from "./theme-toggle";
 import {
   education,
   experience,
@@ -16,23 +17,26 @@ import { site } from "@/content/site";
 export default function Home() {
   return (
     <>
-      <header className="masthead frame">
-        <a className="brand" href="#top" aria-label={`${site.name}, home`}>
-          <span className="wordmark">{site.name}</span>
-          <span className="role-strip" aria-hidden="true">
-            <span>{site.roles.join(" / ")}</span>
-          </span>
-        </a>
-        <nav aria-label="Primary">
-          {site.nav.map((item) => (
-            <a className="draw" href={item.href} key={item.href}>
-              {item.label}
-            </a>
-          ))}
-          <a className="pill-link" href="#contact">
-            Contact
+      <header className="masthead">
+        <div className="masthead-inner frame">
+          <a className="brand" href="#top" aria-label={`${site.name}, home`}>
+            <span className="wordmark">{site.name}</span>
+            <span className="role-strip" aria-hidden="true">
+              {site.headline}
+            </span>
           </a>
-        </nav>
+          <nav aria-label="Primary">
+            {site.nav.map((item) => (
+              <a className="draw" href={item.href} key={item.href}>
+                {item.label}
+              </a>
+            ))}
+            <ThemeToggle />
+            <a className="pill-link" href="#contact">
+              Contact
+            </a>
+          </nav>
+        </div>
       </header>
 
       <main className="frame" id="top">
@@ -68,17 +72,6 @@ export default function Home() {
               <span className="initials" aria-hidden="true">
                 SC
               </span>
-            </div>
-            <figcaption>
-              <span>
-                <b>{site.name}</b>
-                M.S. Information Systems, Northeastern
-              </span>
-              <span>{site.location}</span>
-            </figcaption>
-            <div className="badge">
-              <b>0</b>
-              App Store rejections
             </div>
           </figure>
         </section>
@@ -173,7 +166,13 @@ export default function Home() {
                     </a>
                   </div>
                   <div className="shot">
-                    <img alt={project.alt} src={project.image} />
+                    <img
+                      alt={project.alt}
+                      src={project.image}
+                      width={1024}
+                      height={1024}
+                      loading="lazy"
+                    />
                   </div>
                 </article>
               </Reveal>

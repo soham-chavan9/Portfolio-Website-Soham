@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// Fades a block in when it first enters view. Bails out entirely if the
+// Fades a block in each time it enters view from either direction. Bails out if the
 // visitor has asked for reduced motion — then the content is just there.
 export default function Reveal({
   children,
@@ -33,12 +33,10 @@ export default function Reveal({
 
     const io = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setShown(true);
-          io.disconnect();
-        }
+        const entry = entries[0];
+        if (entry) setShown(entry.isIntersecting);
       },
-      { rootMargin: "0px 0px -6% 0px", threshold: 0.08 }
+      { rootMargin: "-5% 0px -5% 0px", threshold: 0 }
     );
 
     io.observe(el);
@@ -54,7 +52,7 @@ export default function Reveal({
       <li
         ref={ref as React.RefObject<HTMLLIElement>}
         className={classes}
-        style={{ transitionDelay: `${delay}ms` }}
+        style={{ transitionDelay: shown ? `${delay}ms` : "0ms" }}
       >
         {children}
       </li>
@@ -65,7 +63,7 @@ export default function Reveal({
     <div
       ref={ref as React.RefObject<HTMLDivElement>}
       className={classes}
-      style={{ transitionDelay: `${delay}ms` }}
+      style={{ transitionDelay: shown ? `${delay}ms` : "0ms" }}
     >
       {children}
     </div>
