@@ -20,9 +20,9 @@ export type FeaturedSystem = {
 export const featuredWork = {
   title: "OurFreedom.ai",
   summary:
-    "OurFreedom.ai is a paid platform that keeps families connected to incarcerated loved ones. I led both the backend and the mobile app, and these are three systems I designed and shipped.",
+    "At OurFreedom.ai, I worked on a paid platform that kept families connected to incarcerated loved ones. I led both the backend and the mobile app, and designed and shipped these three systems.",
   role:
-    "Team lead and maintainer across a NestJS and MongoDB backend and a React Native and Expo app for iOS and Android. I merge the release line, run code review for about 20 contributors, and own everything between a schema change and a store release.",
+    "Team lead and maintainer across a NestJS and MongoDB backend and a React Native and Expo app for iOS and Android. I merged the release line, ran code review for about 20 contributors, and owned everything between a schema change and a store release.",
   facts: [
     { label: "Role", value: "Full-stack engineer, team lead" },
     { label: "Timeline", value: "Jan 2026 to Jun 2026" },
@@ -31,79 +31,79 @@ export const featuredWork = {
   ] satisfies Fact[],
   systems: [
     {
-      id: "moderation",
-      label: "Image moderation",
-      title: "Screening sensitive images before anyone sees them",
-      intro:
-        "Families send photos through posts, profiles, uploads, and physical mail. Every image needs screening, but sending all of them to the cloud is slow and costly.",
-      bullets: [
-        "A custom Swift native module wraps Apple's on-device SCSensitivityAnalyzer, so most checks never leave the phone.",
-        "The backend falls back to AWS Rekognition, with an S3 staging lifecycle that holds files until they pass.",
-        "SHA-256 content hashing means the same image is never scanned twice.",
-      ],
-      steps: [
-        {
-          title: "Hash and check cache",
-          note: "SHA-256 content hash",
-          detail:
-            "The client computes a SHA-256 hash of the image. If this exact content was already judged, the cached verdict is reused and nothing else runs.",
-        },
-        {
-          title: "On-device analysis",
-          note: "Swift native module, iOS",
-          detail:
-            "On supported iOS devices, the Swift module asks Apple's SCSensitivityAnalyzer for a verdict locally. It is fast and private, and the image never leaves the phone.",
-        },
-        {
-          title: "Backend fallback",
-          note: "NestJS, S3 staging, Rekognition",
-          detail:
-            "When the device cannot decide, or the platform does not support it, the file goes to an S3 staging bucket and a NestJS module sends it to AWS Rekognition.",
-        },
-        {
-          title: "Publish or block",
-          note: "Posts, profiles, uploads, mail",
-          detail:
-            "Approved files are promoted out of staging and published; flagged ones are blocked. The verdict is cached against the hash for next time.",
-        },
-      ],
-    },
-    {
       id: "release",
       label: "Release pipeline",
       title: "Getting fixes to users without waiting on review",
       intro:
-        "Some fixes can ship over the air in minutes, and others need a new store build. I designed a two-track pipeline so each change takes the right path, and so outdated apps are handled safely.",
+        "Some fixes could ship over the air in minutes, and others needed a new store build. I designed a two-track pipeline so each change took the right path, and so outdated apps were handled safely.",
       bullets: [
-        "Expo OTA on iOS and Android, runtime-fingerprinted so an update only lands on compatible builds.",
+        "Expo OTA on iOS and Android, runtime-fingerprinted so an update only landed on compatible builds.",
         "Google Play in-app updates and App Store deep links for native changes.",
         "A backend force-update protocol, GET /api/app-version, read by the useAppUpdate and useNativeVersionCheck hooks.",
-        "Channel-pinned publish scripts keep local env values out of production bundles, with runbooks for every path.",
+        "Channel-pinned publish scripts kept local env values out of production bundles, with runbooks for every path.",
       ],
       steps: [
         {
           title: "Change merged to release line",
           note: "Reviewed and merged by me",
           detail:
-            "Every release change starts with review and a controlled merge path, so production code and production configuration stay aligned.",
+            "Every release change started with review and a controlled merge path, so production code and production configuration stayed aligned.",
         },
         {
           title: "Route the change",
           note: "OTA for JavaScript, EAS for native",
           detail:
-            "JavaScript-only changes move through Expo OTA on pinned channels. Native changes go through EAS build, TestFlight, and store submission.",
+            "JavaScript-only changes moved through Expo OTA on pinned channels. Native changes went through EAS build, TestFlight, and store submission.",
         },
         {
-          title: "App checks its version",
+          title: "App checked its version",
           note: "GET /api/app-version on launch",
           detail:
-            "The client asks the backend which versions are supported, recommended, or blocked before users get too far into the app.",
+            "The client asked the backend which versions were supported, recommended, or blocked before users got too far into the app.",
         },
         {
           title: "Update, prompt, or force",
           note: "Play in-app update or App Store link",
           detail:
-            "Users get the right update path for their platform and build: continue, prompt, or force update when a build is no longer safe.",
+            "Users got the right update path for their platform and build: continue, prompt, or force update when a build was no longer safe.",
+        },
+      ],
+    },
+    {
+      id: "moderation",
+      label: "Image moderation",
+      title: "Screening sensitive images before anyone saw them",
+      intro:
+        "Families sent photos through posts, profiles, uploads, and physical mail. Every image needed screening, but sending all of them to the cloud was slow and costly.",
+      bullets: [
+        "A custom Swift native module wrapped Apple's on-device SCSensitivityAnalyzer, so most checks never left the phone.",
+        "The backend fell back to AWS Rekognition, with an S3 staging lifecycle that held files until they passed.",
+        "SHA-256 content hashing meant the same image was never scanned twice.",
+      ],
+      steps: [
+        {
+          title: "Hash and check cache",
+          note: "SHA-256 content hash",
+          detail:
+            "The client computed a SHA-256 hash of the image. If this exact content had already been judged, the cached verdict was reused and nothing else ran.",
+        },
+        {
+          title: "On-device analysis",
+          note: "Swift native module, iOS",
+          detail:
+            "On supported iOS devices, the Swift module asked Apple's SCSensitivityAnalyzer for a verdict locally. It was fast and private, and the image never left the phone.",
+        },
+        {
+          title: "Backend fallback",
+          note: "NestJS, S3 staging, Rekognition",
+          detail:
+            "When the device could not decide, or the platform did not support it, the file went to an S3 staging bucket and a NestJS module sent it to AWS Rekognition.",
+        },
+        {
+          title: "Publish or block",
+          note: "Posts, profiles, uploads, mail",
+          detail:
+            "Approved files were promoted out of staging and published; flagged ones were blocked. The verdict was cached against the hash for next time.",
         },
       ],
     },
@@ -156,7 +156,7 @@ export const experience = [
     org: "ACN Fiber Pvt Ltd",
     points: [
       "Built and deployed Express.js REST APIs integrating third-party telecom services, serving 10,000+ daily users.",
-      "Standardized request, response, and error contracts across endpoints, cutting on-call debugging time.",
+      "Standardized request, response, and error contracts across endpoints, so every endpoint returned errors in one consistent format.",
     ],
   },
 ];
@@ -169,7 +169,6 @@ export const projects = [
     team: "3",
     problem:
       "Enterprises need a compliance assistant that answers accurately and cites its sources.",
-    impact: "+15% improvement in reasoning accuracy",
     built:
       "PDF ingestion, chunking, FAISS retrieval, and cited answers, with fuzzy matching and fallbacks against empty responses.",
     stack: ["Python", "FastAPI", "LangChain", "FAISS", "OpenAI", "Next.js"],
@@ -182,7 +181,6 @@ export const projects = [
     timeline: "Aug 2024 to Dec 2024",
     team: "2",
     problem: "People lacked multilingual, AI-driven insight into their spending.",
-    impact: "10% improvement in spending behavior among users",
     built:
       "Expense, budget, and shopping-list CRUD with an ECharts dashboard, a Gemini assistant, alerts, and i18next.",
     stack: ["React", "Next.js", "Redux", "MongoDB", "JWT", "Gemini", "ECharts"],
@@ -190,13 +188,13 @@ export const projects = [
     alt: "FundFlow dashboard",
   },
   {
+    // TODO(soham): confirm spelling, TaskTreak vs TaskTrek
     title: "TaskTreak, AI-Enhanced Task Manager",
-    role: "Lead Java Developer",
+    role: "Solo developer",
     timeline: "Dec 2024 to Feb 2025",
     team: "Solo",
     problem:
       "Scheduling needed to be automatic, with conflicts caught before they happen.",
-    impact: "25% faster task execution",
     built:
       "A JavaFX task manager with SQLite persistence, JDBC data access, and OpenAI-assisted scheduling.",
     stack: ["Java", "JavaFX", "SQLite", "JDBC", "OpenAI API"],
@@ -210,16 +208,15 @@ export const testimonials = [
     quote:
       "Soham played a crucial role in modernizing our telecom integration systems. His REST API development scaled effortlessly to 10,000+ daily users and significantly improved our data processing reliability by 20%.",
     name: "Ralph Lobo",
-    role: "ACN Fiber",
+    role: "CTO, ACN Fiber",
     initials: "RL",
   },
   {
     quote:
       "Soham quickly became an essential part of our engineering team. His ability to build clean, maintainable code and integrate AI-powered automation helped us ship key features ahead of schedule.",
     name: "Vipul Shah",
-    role: "Engineering lead",
+    role: "former Engineering Lead, Digi Cable",
     initials: "VS",
-    image: "/vipul-shah.png",
   },
 ];
 
@@ -241,6 +238,7 @@ export const services = [
   },
 ];
 
+// TODO(soham): trim skills list to tools I'd defend in an interview
 export const skillGroups = [
   {
     label: "Languages",

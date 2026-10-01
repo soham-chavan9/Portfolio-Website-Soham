@@ -1,6 +1,11 @@
 export const site = {
   name: "Soham Chavan",
-  headline: "Software & AI Engineer",
+  headline: "Full-Stack Engineer, Mobile, Backend, and Platform",
+  navHeadline: "Full-Stack Engineer",
+  description:
+    "Full-stack engineer shipping mobile, backend, and platform systems end to end, from database schema to App Store release.",
+  // TODO(soham): switch to custom domain when purchased
+  url: "https://portfolio-website-soham.vercel.app",
   intro:
     "I ship mobile, backend, and AI systems end to end, from the database schema to the App Store submission, for products where trust matters.",
   status: "Open to full-time roles from January 2027",
@@ -18,8 +23,8 @@ export const site = {
   profileImage: "/soham-chavan.png",
   stats: [
     {
-      value: "2+",
-      label: "years shipping production software",
+      value: "1.5+",
+      label: "years shipping production software across two teams",
     },
     {
       value: "110+",
@@ -27,11 +32,11 @@ export const site = {
     },
     {
       value: "~40",
-      label: "backend modules I review and maintain",
+      label: "backend modules I reviewed and maintained",
     },
     {
       value: "10K+",
-      label: "daily users on APIs I built",
+      label: "daily users on APIs I built at ACN Fiber",
     },
   ],
   nav: [

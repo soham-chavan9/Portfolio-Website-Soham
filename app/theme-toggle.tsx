@@ -34,7 +34,7 @@ export default function ThemeToggle() {
     });
   }
 
-  const label = dark ? "Switch to light theme" : "Switch to dark theme";
+  const label = dark ? "Switch to light mode" : "Switch to dark mode";
 
   return (
     <button

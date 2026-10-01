@@ -35,7 +35,12 @@ export default function ContactActions({
           GitHub
         </a>
       </div>
-      <p className={message ? "toast show" : "toast"} role="status">
+      <p
+        className={message ? "toast show" : "toast"}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         {message}
       </p>
     </div>

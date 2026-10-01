@@ -19,14 +19,19 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: `${site.name}, Software Engineer`,
-  description:
-    "Soham Chavan, full-stack engineer shipping mobile, backend, and AI systems end to end.",
+  metadataBase: new URL(site.url),
+  title: `${site.name}, ${site.headline}`,
+  description: site.description,
   openGraph: {
-    title: `${site.name}, Software Engineer`,
-    description:
-      "Mobile, backend, and AI systems, from database schema to App Store release.",
+    title: `${site.name}, ${site.headline}`,
+    description: site.description,
+    url: site.url,
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${site.name}, ${site.headline}`,
+    description: site.description,
   },
 };
 
@@ -37,7 +42,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${serif.variable} ${mono.variable}`}>
-      <body>{children}</body>
+      <body>
+        <noscript>
+          <style>{`
+            .reveal { opacity: 1; transform: none; }
+            .feature .tabs { display: none; }
+            .feature .panel[hidden] { display: grid; }
+            .feature .panel + .panel { margin-top: 30px; }
+            .feature .flow-detail[hidden] { display: block; }
+          `}</style>
+        </noscript>
+        {children}
+      </body>
     </html>
   );
 }

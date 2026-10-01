@@ -2,6 +2,7 @@ import ContactActions from "./contact-actions";
 import FeaturedWork from "./featured-work";
 import Reveal from "./reveal";
 import ThemeToggle from "./theme-toggle";
+import InitialsAvatar from "./initials-avatar";
 import {
   education,
   experience,
@@ -22,7 +23,7 @@ export default function Home() {
           <a className="brand" href="#top" aria-label={`${site.name}, home`}>
             <span className="wordmark">{site.name}</span>
             <span className="role-strip" aria-hidden="true">
-              {site.headline}
+              {site.navHeadline}
             </span>
           </a>
           <nav aria-label="Primary">
@@ -148,10 +149,6 @@ export default function Home() {
                         <dd>{project.problem}</dd>
                       </div>
                       <div>
-                        <dt>Impact</dt>
-                        <dd className="impact">{project.impact}</dd>
-                      </div>
-                      <div>
                         <dt>Built</dt>
                         <dd>{project.built}</dd>
                       </div>
@@ -161,9 +158,7 @@ export default function Home() {
                         <li key={item}>{item}</li>
                       ))}
                     </ul>
-                    <a className="read-link draw" href={site.github}>
-                      Source code
-                    </a>
+                    {/* TODO(soham): add repo links when public */}
                   </div>
                   <div className="shot">
                     <img
@@ -182,7 +177,7 @@ export default function Home() {
 
         <section className="section">
           <div className="section-head">
-            <h2>Social proof</h2>
+            <h2>What colleagues say</h2>
             <p>What people I have built with have said.</p>
           </div>
           <div className="quotes">
@@ -191,9 +186,7 @@ export default function Home() {
                 <figure className="quote">
                   <blockquote>{item.quote}</blockquote>
                   <figcaption>
-                    <span className="avatar">
-                      {item.image ? <img alt="" src={item.image} /> : item.initials}
-                    </span>
+                    <InitialsAvatar initials={item.initials} />
                     <span>
                       <b>{item.name}</b>
                       {item.role}
@@ -207,7 +200,7 @@ export default function Home() {
 
         <section className="section" id="skills">
           <div className="section-head">
-            <h2>Skills & services</h2>
+            <h2>Skills and What I Am Strong At</h2>
             <p>Three kinds of work I am strongest at, and the tools I use.</p>
           </div>
           <div className="services">
@@ -249,11 +242,11 @@ export default function Home() {
                 to the moment it passes App Store review.
               </p>
               <p>
-                My most meaningful work so far has been at OurFreedom.ai, where
-                the people using the app are families keeping in touch with
+                My most meaningful work so far was at OurFreedom.ai, where
+                the people using the app were families keeping in touch with
                 someone in prison. That shaped how I think about engineering: a
-                release that breaks, or an image that slips through moderation,
-                lands on real people.
+                release that broke, or an image that slipped through moderation,
+                affected real people.
               </p>
               <p>
                 Before that I built telecom integration APIs in Mumbai serving

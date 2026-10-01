@@ -58,7 +58,7 @@ export const writeups: Writeup[] = [
     slug: "on-device-moderation",
     title: "Moderating images before they leave the phone",
     deck:
-      "Screening sensitive images on the device first, with server-side fallback and hash-based verdict caching for a platform where what gets through matters.",
+      "Screening sensitive images on the device first, with server-side fallback and hash-based verdict caching for a platform where what got through mattered.",
     meta: {
       role: "Team lead, mobile and backend",
       when: "Jan 2026 to Jun 2026",
@@ -70,18 +70,18 @@ export const writeups: Writeup[] = [
       {
         kind: "p",
         text:
-          "Families send photos through posts, profiles, uploads, and physical mail. Every image needs screening, but shipping every file to the cloud first is slower, more expensive, and worse for privacy.",
+          "Families sent photos through posts, profiles, uploads, and physical mail. Every image needed screening, but shipping every file to the cloud first was slower, more expensive, and worse for privacy.",
       },
       { kind: "h", text: "What I built" },
       {
         kind: "p",
         text:
-          "I built a custom Swift native module around Apple's SCSensitivityAnalyzer for supported iOS devices, then used AWS Rekognition from the NestJS backend as the fallback path. Files move through an S3 staging lifecycle until a verdict decides whether they can be published.",
+          "I built a custom Swift native module around Apple's SCSensitivityAnalyzer for supported iOS devices, then used AWS Rekognition from the NestJS backend as the fallback path. Files moved through an S3 staging lifecycle until a verdict decided whether they could be published.",
       },
       {
         kind: "p",
         text:
-          "The client computes a SHA-256 hash for each image, so repeated content can reuse a cached verdict instead of being scanned again.",
+          "The client computed a SHA-256 hash for each image, so repeated content could reuse a cached verdict instead of being scanned again.",
       },
       { kind: "h", text: "Result" },
       {
