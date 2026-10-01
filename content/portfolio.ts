@@ -133,7 +133,7 @@ export const featuredWork = {
 
 export const experience = [
   {
-    when: "Jan 2026 to Jun 2026, New York City (remote co-op)",
+    when: "Jan 2026 to Jun 2026, New York City",
     title: "Full-Stack Software Engineer, Mobile and Backend",
     org: "OurFreedom.ai",
     points: [
