@@ -118,7 +118,9 @@ export default function CameraRig() {
       c.fov = TITLE.fov;
     } else if (s.phase === "intro") {
       if (c.intro < 0) c.intro = 0;
-      c.intro = Math.min(1, c.intro + dt / (reduced ? 0.6 : INTRO_SECONDS));
+      // Real time (capped per frame) so a slow or throttled frame rate
+      // doesn't stretch the fly-in into minutes.
+      c.intro = Math.min(1, c.intro + Math.min(delta, 0.25) / (reduced ? 0.6 : INTRO_SECONDS));
       const k = ease(c.intro);
       INTRO.getPointAt(k, c.pos);
       c.look.lerpVectors(HEAD, SHOTS.lobby.look, THREE.MathUtils.smoothstep(k, 0.45, 1));
