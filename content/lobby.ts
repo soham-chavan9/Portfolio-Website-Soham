@@ -18,6 +18,9 @@ export const screens: { id: ScreenId; label: string; plain: string }[] = [
   { id: "intel", label: "Intel", plain: "About" },
 ];
 
+/** Player-card portrait shown in the lobby HUD. */
+export const operatorAvatar = "/operator/soham-avatar.webp";
+
 // The penthouse: a Newport tower on the Jersey City waterfront.
 export const viewpoint = {
   name: "Newport, Jersey City",

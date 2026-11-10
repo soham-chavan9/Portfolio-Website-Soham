@@ -6,6 +6,7 @@ import {
   degreeProgress,
   landmarks,
   missionTargets,
+  operatorAvatar,
   projectTargets,
   rangeLabel,
   screens,
@@ -58,7 +59,7 @@ function PlayerCard() {
       onMouseLeave={() => lobby.get().hovered === "player" && lobby.set({ hovered: null })}
     >
       <button type="button" className="player-avatar" onClick={() => go("intel")} onMouseEnter={hover} aria-label="Open Intel: about Soham">
-        <img src={site.profileImage} alt="" width={128} height={128} />
+        <img src={operatorAvatar} alt="" width={128} height={128} />
       </button>
       <div className="player-info">
         <p className="player-name">

@@ -25,9 +25,10 @@ const SHOTS: Record<ScreenId, Shot> = {
   lobby: { pos: V(0.85, 1.58, 2.7), look: V(0.55, 1.3, -8), fov: 40 },
   missions: { pos: V(-2.15, 1.52, -1.75), look: V(...landmarkTop("oneWtc")).add(V(0, -30, 0)), fov: 26 },
   arsenal: { pos: V(-1.0, 1.62, -2.1), look: midtown(), fov: 22 },
-  loadout: { pos: V(-0.25, 1.32, 0.95), look: V(-0.55, 1.08, -2.5), fov: 36 },
+  // Loadout and Intel sit in front of the operator's fixed three-quarter stance.
+  loadout: { pos: V(0.87, 1.3, 0.59), look: V(-0.55, 1.02, -2.5), fov: 36 },
   career: { pos: V(5.4, 2.05, 3.3), look: V(-2.6, 1.1, -5.5), fov: 46 },
-  intel: { pos: V(0.9, 1.55, 0.35), look: V(-0.55, 1.2, -2.5), fov: 34 },
+  intel: { pos: V(1.21, 1.55, -0.45), look: V(-0.55, 1.28, -2.5), fov: 34 },
 };
 
 const FOCUS_FOV: Partial<Record<ScreenId, number>> = { career: 24 };
@@ -117,7 +118,9 @@ export default function CameraRig() {
       c.fov = TITLE.fov;
     } else if (s.phase === "intro") {
       if (c.intro < 0) c.intro = 0;
-      c.intro = Math.min(1, c.intro + dt / (reduced ? 0.6 : INTRO_SECONDS));
+      // Real time (capped per frame) so a slow or throttled frame rate
+      // doesn't stretch the fly-in into minutes.
+      c.intro = Math.min(1, c.intro + Math.min(delta, 0.25) / (reduced ? 0.6 : INTRO_SECONDS));
       const k = ease(c.intro);
       INTRO.getPointAt(k, c.pos);
       c.look.lerpVectors(HEAD, SHOTS.lobby.look, THREE.MathUtils.smoothstep(k, 0.45, 1));
