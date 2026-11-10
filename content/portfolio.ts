@@ -300,6 +300,12 @@ export const education = [
   },
 ];
 
+export const about = [
+  "I am Soham, a software engineer in Boston. I like owning a system from its database schema through the API and native code to the moment it passes App Store review.",
+  "My most meaningful work so far was at OurFreedom.ai, where the people using the app were families keeping in touch with someone in prison. That shaped how I think about engineering: a release that broke, or an image that slipped through moderation, affected real people.",
+  "Before that I built telecom integration APIs in Mumbai serving 10,000+ daily users. Now I am finishing an M.S. in Information Systems at Northeastern.",
+];
+
 export const nowItems = [
   {
     label: "Finishing my master's",
