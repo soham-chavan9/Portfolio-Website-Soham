@@ -1,51 +1,46 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const storageKey = "portfolio-theme";
+import { themeStorageKey } from "./theme";
 
 export default function ThemeToggle() {
   const [dark, setDark] = useState(false);
 
+  // The <head> script already applied the theme before paint; mirror it here.
   useEffect(() => {
-    let next = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    try {
-      const saved = window.localStorage.getItem(storageKey);
-      if (saved) next = saved === "dark";
-    } catch {
-      // Fall back to the operating-system preference.
-    }
-
-    document.documentElement.dataset.theme = next ? "dark" : "light";
-    setDark(next);
+    setDark(document.documentElement.dataset.theme === "dark");
   }, []);
 
   function toggleTheme() {
-    setDark((current) => {
-      const next = !current;
-      const theme = next ? "dark" : "light";
-      document.documentElement.dataset.theme = theme;
-      try {
-        window.localStorage.setItem(storageKey, theme);
-      } catch {
-        // The selected theme still applies when storage is unavailable.
-      }
-      return next;
-    });
+    const root = document.documentElement;
+    const next = root.dataset.theme === "dark" ? "light" : "dark";
+    root.dataset.theme = next;
+    try {
+      window.localStorage.setItem(themeStorageKey, next);
+    } catch {
+      // The selected theme still applies when storage is unavailable.
+    }
+    setDark(next === "dark");
   }
 
-  const label = dark ? "Switch to light mode" : "Switch to dark mode";
-
+  // Fixed name plus aria-pressed: a label that flips with the state would make
+  // screen readers announce the opposite of what is on screen.
   return (
     <button
-      aria-label={label}
+      aria-label="Dark theme"
       aria-pressed={dark}
       className="theme-toggle"
       onClick={toggleTheme}
-      title={label}
+      title={dark ? "Switch to light theme" : "Switch to dark theme"}
       type="button"
     >
-      <span aria-hidden="true">{dark ? "\u2600" : "\u263e"}</span>
+      {/* CSS picks the glyph from html[data-theme], so it is right on first paint. */}
+      <span aria-hidden="true" className="theme-icon-moon">
+        {"☾"}
+      </span>
+      <span aria-hidden="true" className="theme-icon-sun">
+        {"☀"}
+      </span>
     </button>
   );
 }

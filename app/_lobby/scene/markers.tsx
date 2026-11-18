@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { markerScreen } from "../marker-meta";
-import { useLobby } from "../store";
+import { lobby, useLobby } from "../store";
 import { markers, type MarkerDef } from "./targets";
 import { createBeamMaterial } from "./shaders";
 
@@ -59,27 +59,26 @@ function Marker({ m, active, selected }: { m: MarkerDef; active: boolean; select
   const group = useRef<THREE.Group>(null);
   const gem = useRef<THREE.Mesh>(null);
   const ring = useRef<THREE.Mesh>(null);
-  const beam = useRef<THREE.Mesh>(null);
   const fade = useRef(0);
-  const beamLen = m.landmark ? 9 : 40;
-  const scale = m.landmark ? 1 : 3;
+  const { beam: beamLen, scale } = m;
 
   useFrame(({ clock }, delta) => {
     const t = clock.elapsedTime;
-    fade.current = THREE.MathUtils.damp(fade.current, active ? 1 : 0, 5, delta);
+    fade.current = THREE.MathUtils.damp(fade.current, active ? 1 : 0, 5, Math.min(delta, 0.1));
     const f = fade.current;
     const visible = f > 0.01;
     if (group.current) group.current.visible = visible;
     if (!visible) return;
-    beamMat.uniforms.uTime.value = t;
+    const still = lobby.get().reducedMotion;
+    beamMat.uniforms.uTime.value = still ? 0 : t;
     beamMat.uniforms.uOpacity.value = f * (selected ? 1 : 0.7);
     gemMat.opacity = f;
-    ringMat.opacity = f * (0.5 + 0.5 * Math.sin(t * 3));
+    ringMat.opacity = f * (still ? 0.75 : 0.5 + 0.5 * Math.sin(t * 3));
     if (gem.current) {
-      gem.current.rotation.y = t * 1.2;
-      gem.current.position.y = Math.sin(t * 2) * 0.4;
+      gem.current.rotation.y = still ? 0.4 : t * 1.2;
+      gem.current.position.y = still ? 0 : Math.sin(t * 2) * 0.4;
     }
-    if (ring.current) ring.current.scale.setScalar((1 + ((t * 0.6) % 1) * 1.6) * scale);
+    if (ring.current) ring.current.scale.setScalar((still ? 1.6 : 1 + ((t * 0.6) % 1) * 1.6) * scale);
   });
 
   return (
@@ -87,11 +86,11 @@ function Marker({ m, active, selected }: { m: MarkerDef; active: boolean; select
       <mesh ref={gem} material={gemMat} scale={scale}>
         <octahedronGeometry args={[1.5, 0]} />
       </mesh>
-      <mesh ref={beam} material={beamMat} position={[0, -beamLen / 2 - 1.5 * scale, 0]}>
+      <mesh material={beamMat} position={[0, -beamLen / 2 - 1.5 * scale, 0]}>
         <cylinderGeometry args={[0.18 * scale, 0.18 * scale, beamLen, 8, 1, true]} />
       </mesh>
-      {m.landmark && (
-        <mesh ref={ring} material={ringMat} position={[0, -8.7, 0]} rotation-x={-Math.PI / 2}>
+      {m.ring && (
+        <mesh ref={ring} material={ringMat} position={[0, 0.3 - beamLen, 0]} rotation-x={-Math.PI / 2}>
           <ringGeometry args={[3.2, 3.6, 40]} />
         </mesh>
       )}
@@ -105,6 +104,10 @@ function Projector() {
   const size = useThree((s) => s.size);
   const v = useMemo(() => new THREE.Vector3(), []);
   useFrame(() => {
+    // The rig moved the camera this frame; the renderer only refreshes the
+    // view matrix inside render(), which runs after us. Without this the DOM
+    // labels trail the 3D pins by a frame during every camera move.
+    camera.updateMatrixWorld();
     for (const m of markers) {
       v.copy(m.position);
       v.y += m.landmark ? 4 : 12;

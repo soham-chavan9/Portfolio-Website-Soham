@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import { Chakra_Petch, Saira_Condensed } from "next/font/google";
 import Link from "next/link";
 import { featuredWork } from "@/content/portfolio";
 import { site } from "@/content/site";
 import LobbyApp from "./_lobby/lobby-app";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const ui = Chakra_Petch({
   subsets: ["latin"],
@@ -32,10 +37,15 @@ export default function Home() {
         <p>Featured work: {featuredWork.summary}</p>
       </div>
       <LobbyApp />
+      {/* Shown by CSS only when the scene could not start WebGL. */}
+      <Link className="lobby-escape" href="/classic">
+        Open the classic page instead
+      </Link>
       <noscript>
         <div className="noscript">
           <p>
-            The 3D lobby needs JavaScript. <a href="/classic">Open the classic page</a>.
+            The 3D lobby needs JavaScript.{" "}
+            <a href="/classic">Open the classic page</a>.
           </p>
         </div>
       </noscript>

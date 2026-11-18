@@ -2,10 +2,14 @@
 
 import { useState } from "react";
 import type { KeyboardEvent } from "react";
-import { featuredWork } from "@/content/portfolio";
+import { featuredWork, type FeaturedSystem } from "@/content/portfolio";
+
+// Typed as the shared shape so systems can be added or removed in content
+// without this component assuming which fields each one carries.
+const systems: readonly FeaturedSystem[] = featuredWork.systems;
 
 export default function FeaturedWork() {
-  const [activeId, setActiveId] = useState(featuredWork.systems[0].id);
+  const [activeId, setActiveId] = useState(systems[0]?.id ?? "");
   const [activeStep, setActiveStep] = useState(0);
 
   function select(id: string) {
@@ -14,17 +18,16 @@ export default function FeaturedWork() {
   }
 
   function onTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, i: number) {
-    const direction =
-      event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
-
-    if (!direction) return;
+    const last = systems.length - 1;
+    let target: number;
+    if (event.key === "ArrowRight") target = i === last ? 0 : i + 1;
+    else if (event.key === "ArrowLeft") target = i === 0 ? last : i - 1;
+    else if (event.key === "Home") target = 0;
+    else if (event.key === "End") target = last;
+    else return;
 
     event.preventDefault();
-    const next =
-      featuredWork.systems[
-        (i + direction + featuredWork.systems.length) %
-          featuredWork.systems.length
-      ];
+    const next = systems[target];
     select(next.id);
     document.getElementById(`tab-${next.id}`)?.focus();
   }
@@ -47,26 +50,32 @@ export default function FeaturedWork() {
         </dl>
       </div>
 
-      <div className="tabs" role="tablist" aria-label="OurFreedom systems">
-        {featuredWork.systems.map((system, i) => (
-          <button
-            aria-controls={`panel-${system.id}`}
-            aria-selected={system.id === activeId}
-            className="tab"
-            id={`tab-${system.id}`}
-            key={system.id}
-            onClick={() => select(system.id)}
-            onKeyDown={(event) => onTabKeyDown(event, i)}
-            role="tab"
-            tabIndex={system.id === activeId ? 0 : -1}
-            type="button"
-          >
-            {system.label}
-          </button>
-        ))}
-      </div>
+      {systems.length > 0 && (
+        <div
+          className="tabs"
+          role="tablist"
+          aria-label={`${featuredWork.title} systems`}
+        >
+          {systems.map((system, i) => (
+            <button
+              aria-controls={`panel-${system.id}`}
+              aria-selected={system.id === activeId}
+              className="tab"
+              id={`tab-${system.id}`}
+              key={system.id}
+              onClick={() => select(system.id)}
+              onKeyDown={(event) => onTabKeyDown(event, i)}
+              role="tab"
+              tabIndex={system.id === activeId ? 0 : -1}
+              type="button"
+            >
+              {system.label}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {featuredWork.systems.map((system) => (
+      {systems.map((system) => (
         <div
           aria-labelledby={`tab-${system.id}`}
           className="panel"
@@ -86,8 +95,12 @@ export default function FeaturedWork() {
             </ul>
           </div>
 
-          {system.steps ? (
-            <div className="flow" aria-label={`${system.label} flow`}>
+          {system.steps && system.steps.length > 0 ? (
+            <div
+              className="flow"
+              role="group"
+              aria-label={`${system.label} flow`}
+            >
               <ol className="flow-steps">
                 {system.steps.map((step, i) => (
                   <li key={step.title}>
@@ -119,16 +132,16 @@ export default function FeaturedWork() {
                 ))}
               </div>
             </div>
-          ) : (
+          ) : system.facts && system.facts.length > 0 ? (
             <dl className="system-facts">
-              {system.facts?.map((fact) => (
+              {system.facts.map((fact) => (
                 <div key={fact.label}>
                   <dt>{fact.label}</dt>
                   <dd>{fact.value}</dd>
                 </div>
               ))}
             </dl>
-          )}
+          ) : null}
         </div>
       ))}
     </article>

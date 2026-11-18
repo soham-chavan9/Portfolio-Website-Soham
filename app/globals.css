@@ -8,7 +8,8 @@
 
   --ink: #191b22;
   --ink-2: #454854;
-  --ink-3: #686c78;
+  /* #686c78 fell to about 4.4:1 over the peach end of the page gradient. */
+  --ink-3: #5f6370;
 
   --rule: #ded8cf;
   --rule-strong: #bfb6a6;
@@ -111,6 +112,25 @@ img {
   outline-offset: 4px;
 }
 
+.skip-to-content {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  z-index: 50;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  font-weight: 700;
+  transform: translateY(-200%);
+}
+
+.skip-to-content:focus {
+  transform: none;
+}
+
 .frame {
   max-width: var(--frame);
   margin: 0 auto;
@@ -184,19 +204,28 @@ img {
 }
 
 .wordmark {
+  flex: none;
   color: var(--ink);
   font-size: 0.82rem;
   font-weight: 700;
   white-space: nowrap;
 }
 
+/* Truncates instead of pushing the nav off screen when the headline grows. */
 .role-strip {
+  min-width: 0;
+  overflow: hidden;
   padding-left: 12px;
   border-left: 1px solid var(--rule);
   color: var(--ink-3);
   font-size: 0.68rem;
   line-height: 1.2;
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.masthead nav {
+  flex: none;
 }
 
 .masthead nav {
@@ -285,6 +314,15 @@ img {
 .theme-toggle:focus-visible {
   background: var(--surface-2);
   color: var(--royal);
+}
+
+.theme-icon-sun,
+html[data-theme="dark"] .theme-icon-moon {
+  display: none;
+}
+
+html[data-theme="dark"] .theme-icon-sun {
+  display: inline;
 }
 
 .hero {
@@ -415,22 +453,22 @@ img {
   font-weight: 700;
 }
 
+/* One row for any number of stats; the 1px gap over a rule-coloured background
+   draws the dividers, so they stay right when the grid wraps. */
 .stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 1px;
   overflow: hidden;
   border: 1px solid var(--rule);
   border-radius: var(--radius);
-  background: var(--surface);
+  background: var(--rule);
 }
 
 .stat {
   padding: 23px 22px;
-  border-left: 1px solid var(--rule);
-}
-
-.stat:first-child {
-  border-left: 0;
+  background: var(--surface);
 }
 
 .stat b {
@@ -677,7 +715,7 @@ img {
   min-height: 5.5em;
   margin: 14px 0 0;
   padding: 14px 16px;
-  border-left: 3px solid var(--gold);
+  border: 1px solid var(--rule);
   background: var(--surface);
   color: var(--ink-2);
 }
@@ -838,15 +876,16 @@ img {
   object-position: center;
 }
 
+/* auto-fit so one quote or a fourth service fills the row instead of leaving a hole. */
 .quotes,
 .services {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
   gap: 20px;
 }
 
 .services {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   margin-bottom: 22px;
 }
 
@@ -857,6 +896,7 @@ img {
 }
 
 .quote blockquote {
+  max-width: var(--measure);
   margin: 0 0 26px;
   color: var(--ink-2);
   font-size: var(--t-21);
@@ -1028,6 +1068,11 @@ img {
   color: var(--contact-ink);
 }
 
+/* The royal ring is about 2:1 on the dark contact panel; use its ink instead. */
+.contact :focus-visible {
+  outline-color: var(--contact-ink);
+}
+
 .toast {
   min-height: 1.4em;
   margin: 10px 0 0;
@@ -1074,6 +1119,85 @@ img {
 .reveal.is-in {
   opacity: 1;
   transform: none;
+}
+
+.case-studies {
+  margin-top: 34px;
+}
+
+.case-studies h3 {
+  margin: 0 0 14px;
+  font-size: var(--t-21);
+  font-weight: 600;
+}
+
+.case-studies ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.case-studies li {
+  padding: 20px 22px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.case-studies a {
+  color: var(--ink);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.case-studies p {
+  margin: 8px 0 0;
+  color: var(--ink-2);
+  font-size: var(--t-small);
+}
+
+.status-page {
+  max-width: var(--measure);
+  padding: 112px 0 96px;
+}
+
+.status-page h1 {
+  margin: 0;
+  font-size: var(--t-44);
+  font-weight: 600;
+  line-height: 1.08;
+}
+
+.status-page h1 + p {
+  margin: 18px 0 0;
+  color: var(--ink-2);
+  font-size: var(--t-21);
+}
+
+/* "/" only: app/page.tsx renders this link, and it shows only when the scene
+   swapped in its no-WebGL fallback. */
+.lobby-escape {
+  display: none;
+}
+
+.lobby-root:has(.scene-fallback) .lobby-escape {
+  position: fixed;
+  top: calc(50% + 44px);
+  left: 50%;
+  z-index: 30;
+  display: block;
+  padding: 10px 16px;
+  background: #ffb23f;
+  color: #1b1305;
+  font: 700 14px/1.2 system-ui, sans-serif;
+  transform: translateX(-50%);
+}
+
+.lobby-root:has(.scene-fallback) .lobby-escape:focus-visible {
+  outline-color: #ffb23f;
 }
 
 .backlink {
@@ -1180,10 +1304,14 @@ img {
     order: 0;
   }
 
-  .stats,
-  .quotes,
-  .services {
-    grid-template-columns: repeat(2, 1fr);
+  .stats {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* An odd last stat spans the row rather than leaving an empty cell. */
+  .stat:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
 
   .masthead nav a:not(.pill-link) {
@@ -1251,15 +1379,6 @@ img {
     grid-template-columns: 1fr;
   }
 
-  .stat {
-    border-top: 1px solid var(--rule);
-    border-left: 0;
-  }
-
-  .stat:first-child {
-    border-top: 0;
-  }
-
   .section {
     padding-top: 72px;
   }
@@ -1293,5 +1412,22 @@ img {
   .reveal {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* Reveal hides whatever is off screen, which would print as blank space. */
+@media print {
+  .skip-to-content,
+  .theme-toggle {
+    display: none;
+  }
+
+  .masthead {
+    position: static;
+  }
+
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

@@ -322,8 +322,9 @@ export default function Landmarks() {
     const a = SHOWS[Math.floor(k)];
     const b = SHOWS[(Math.floor(k) + 1) % SHOWS.length];
     const blend = THREE.MathUtils.smoothstep(k % 1, 0.9, 1);
-    empire.glow.forEach((g, gi) => {
-      if (g.band === undefined) return;
+    for (let gi = 0; gi < empire.glow.length; gi++) {
+      const g = empire.glow[gi];
+      if (g.band === undefined) continue;
       const ca = a[g.band];
       const cb = b[g.band];
       const boost = gi === 3 ? 3.4 : 2.6;
@@ -332,7 +333,7 @@ export default function Landmarks() {
         THREE.MathUtils.lerp(ca[1], cb[1], blend) * boost,
         THREE.MathUtils.lerp(ca[2], cb[2], blend) * boost,
       );
-    });
+    }
   });
 
   return (

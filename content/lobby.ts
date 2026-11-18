@@ -19,7 +19,7 @@ export const screens: { id: ScreenId; label: string; plain: string }[] = [
 ];
 
 /** Player-card portrait shown in the lobby HUD. */
-export const operatorAvatar = "/operator/soham-avatar.webp";
+export const operatorAvatar = "/operator/soham-avatar.jpg";
 
 // The penthouse: a Newport tower on the Jersey City waterfront.
 export const viewpoint = {
@@ -76,15 +76,17 @@ export function rangeLabel(id: string) {
   return `${km.toFixed(2)} km · ${Math.round(bearing)}° ${compassPoint(bearing)}`;
 }
 
-// Missions = the three OurFreedom.ai systems, pinned on downtown towers.
+// Missions = the OurFreedom.ai systems, pinned on downtown towers.
 export const missionTargets: Record<string, string> = {
   release: "oneWtc",
+  feed: "threeWtc",
   moderation: "leonard",
   messaging: "woolworth",
 };
 
 export const missionReports: Record<string, string> = {
   release: "release-pipeline",
+  feed: "recommendation-feed",
   moderation: "on-device-moderation",
   messaging: "direct-messaging",
 };
@@ -144,8 +146,8 @@ export const ticker = [
   "Open to full-time roles from January 2027",
   "Graduating M.S. Information Systems, December 2026",
   "Based in Boston, open to relocation and remote",
-  "Release, platform, and trust and safety engineering",
-  "No App Store release rejections on my watch",
+  "Full-stack, mobile, and platform engineering",
+  "No App Store or Google Play release rejections",
 ];
 
 /** Degree progress for the XP bar: Sep 2024 to Dec 2026. */

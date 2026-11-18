@@ -24,7 +24,9 @@ export type LobbyState = {
   /** Height in px of a bottom sheet on narrow screens. */
   sheetInset: number;
   touch: boolean;
+  /** Last toast message. Kept after it hides so the fade-out isn't empty. */
   toast: string | null;
+  toastOpen: boolean;
   toastId: number;
 };
 
@@ -45,6 +47,7 @@ const initial: LobbyState = {
   sheetInset: 0,
   touch: false,
   toast: null,
+  toastOpen: false,
   toastId: 0,
 };
 
@@ -87,6 +90,7 @@ export function useLobby<T>(selector: (s: LobbyState) => T): T {
 export const pointer = { x: 0, y: 0 };
 
 export function readPref(key: string): string | null {
+  if (typeof window === "undefined") return null;
   try {
     return window.localStorage.getItem(`lobby:${key}`);
   } catch {

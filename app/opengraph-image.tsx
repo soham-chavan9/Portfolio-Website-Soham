@@ -2,8 +2,9 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { site } from "@/content/site";
+import { defaultTitle } from "./seo";
 
-export const alt = `${site.name}, ${site.headline}`;
+export const alt = defaultTitle;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -35,7 +36,7 @@ export default function OpenGraphImage() {
           {site.headline}
         </div>
         <div style={{ display: "flex", fontSize: 32, lineHeight: 1.35, color: "#454854", maxWidth: 880 }}>
-          Mobile, backend, and platform systems, from database schema to App Store release.
+          {site.description}
         </div>
       </div>
     ),
