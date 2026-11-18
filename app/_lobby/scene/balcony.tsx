@@ -16,6 +16,28 @@ const X0 = -6.5;
 const X1 = 6.5;
 const Z_BACK = 4.5;
 
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
+
+type Placement = { pos: THREE.Vector3Tuple; size: THREE.Vector3Tuple; yaw?: number };
+
+/**
+ * Many copies of one part as a single draw call (and a single shadow-pass
+ * draw), instead of one mesh, geometry and material per copy.
+ */
+function instanced(geometry: THREE.BufferGeometry, material: THREE.Material, items: Placement[]) {
+  const mesh = new THREE.InstancedMesh(geometry, material, items.length);
+  const m = new THREE.Matrix4();
+  const q = new THREE.Quaternion();
+  const p = new THREE.Vector3();
+  const s = new THREE.Vector3();
+  items.forEach((it, i) => {
+    q.setFromAxisAngle(Y_AXIS, it.yaw ?? 0);
+    mesh.setMatrixAt(i, m.compose(p.fromArray(it.pos), q, s.fromArray(it.size)));
+  });
+  mesh.computeBoundingSphere();
+  return mesh;
+}
+
 function tileTexture() {
   const c = document.createElement("canvas");
   c.width = c.height = 1024;
@@ -332,7 +354,7 @@ function CoffeeTable({ position }: { position: [number, number, number] }) {
 
 function Planter({ position, tree = false }: { position: [number, number, number]; tree?: boolean }) {
   const leaves = useMemo(() => {
-    const out: { p: [number, number, number]; s: number }[] = [];
+    const out: Placement[] = [];
     let seed = tree ? 7 : 3;
     const r = () => {
       seed = (seed * 16807) % 2147483647;
@@ -343,13 +365,31 @@ function Planter({ position, tree = false }: { position: [number, number, number
       if (tree) {
         const a = r() * Math.PI * 2;
         const rad = 0.15 + r() * 0.45;
-        out.push({ p: [Math.cos(a) * rad, 1.55 + r() * 0.9, Math.sin(a) * rad], s: 0.1 + r() * 0.12 });
+        const pos: THREE.Vector3Tuple = [Math.cos(a) * rad, 1.55 + r() * 0.9, Math.sin(a) * rad];
+        const s = 0.1 + r() * 0.12;
+        out.push({ pos, size: [s, s * 0.7, s] });
       } else {
-        out.push({ p: [(r() - 0.5) * 0.4, 0.95 + r() * 0.5, (r() - 0.5) * 0.4], s: 0.05 + r() * 0.06 });
+        const pos: THREE.Vector3Tuple = [(r() - 0.5) * 0.4, 0.95 + r() * 0.5, (r() - 0.5) * 0.4];
+        const s = 0.05 + r() * 0.06;
+        out.push({ pos, size: [s, s * 2.4, s] });
       }
     }
-    return out;
+    const mesh = instanced(
+      new THREE.IcosahedronGeometry(1, 0),
+      new THREE.MeshStandardMaterial({ color: tree ? "#33452c" : "#4a5a32", roughness: 0.8, flatShading: true }),
+      out,
+    );
+    mesh.castShadow = true;
+    return mesh;
   }, [tree]);
+  useEffect(
+    () => () => {
+      leaves.geometry.dispose();
+      (leaves.material as THREE.Material).dispose();
+      leaves.dispose();
+    },
+    [leaves],
+  );
   return (
     <group position={position}>
       <mesh position={[0, 0.45, 0]} castShadow receiveShadow>
@@ -362,12 +402,7 @@ function Planter({ position, tree = false }: { position: [number, number, number
           <meshStandardMaterial color="#3b2d22" roughness={0.9} />
         </mesh>
       )}
-      {leaves.map((l, i) => (
-        <mesh key={i} position={l.p} scale={[l.s, l.s * (tree ? 0.7 : 2.4), l.s]} castShadow>
-          <icosahedronGeometry args={[1, 0]} />
-          <meshStandardMaterial color={tree ? "#33452c" : "#4a5a32"} roughness={0.8} flatShading />
-        </mesh>
-      ))}
+      <primitive object={leaves} />
     </group>
   );
 }
@@ -492,21 +527,70 @@ export default function Balcony() {
     [glass, edge, steel, led, interior, slatMat],
   );
 
-  const panels = useMemo(() => {
-    const out: { x: number; z: number; w: number; side: boolean }[] = [];
-    const n = 8;
-    const w = (X1 - X0) / n;
-    for (let i = 0; i < n; i++) out.push({ x: X0 + w * (i + 0.5), z: RAIL_Z, w: w - 0.02, side: false });
-    const m = 5;
-    const d = (Z_BACK - RAIL_Z) / m;
-    for (let i = 0; i < m; i++) out.push({ x: X1, z: RAIL_Z + d * (i + 0.5), w: d - 0.02, side: true });
-    return out;
-  }, []);
-
   const width = X1 - X0;
   const depth = Z_BACK - RAIL_Z;
   const cx = (X0 + X1) / 2;
   const cz = (RAIL_Z + Z_BACK) / 2;
+
+  // Railing panels, the wall's mullions and the privacy slats: repeated parts,
+  // each drawn as one instanced mesh.
+  const parts = useMemo(() => {
+    const unit = new THREE.BoxGeometry(1, 1, 1);
+    const glassPanes: Placement[] = [];
+    const edges: Placement[] = [];
+    const bases: Placement[] = [];
+    const add = (x: number, z: number, w: number, side: boolean) => {
+      const yaw = side ? Math.PI / 2 : 0;
+      // The edge strip sits at the panel's local +x end; turn that offset with the panel.
+      const ex = side ? 0 : w / 2 - 0.004;
+      const ez = side ? -(w / 2 - 0.004) : 0;
+      glassPanes.push({ pos: [x, 0.54, z], size: [w, 1.04, 0.014], yaw });
+      edges.push({ pos: [x + ex, 0.54, z + ez], size: [0.008, 1.04, 0.016], yaw });
+      bases.push({ pos: [x, 0.04, z], size: [w, 0.08, 0.06], yaw });
+    };
+    const n = 8;
+    const w = (X1 - X0) / n;
+    for (let i = 0; i < n; i++) add(X0 + w * (i + 0.5), RAIL_Z, w - 0.02, false);
+    const m = 5;
+    const d = (Z_BACK - RAIL_Z) / m;
+    for (let i = 0; i < m; i++) add(X1, RAIL_Z + d * (i + 0.5), d - 0.02, true);
+
+    const panes = instanced(unit, glass, glassPanes);
+    panes.renderOrder = 2;
+    const edgeStrips = instanced(unit, edge, edges);
+    const baseRails = instanced(unit, steel, bases);
+
+    const mullionMat = new THREE.MeshStandardMaterial({ color: "#0f1013", metalness: 0.6, roughness: 0.4 });
+    const mullions = instanced(
+      unit,
+      mullionMat,
+      Array.from({ length: 9 }, (_, i): Placement => ({ pos: [X0 + (width / 8) * i, 1.7, 0], size: [0.06, 3.4, 0.08] })),
+    );
+
+    const slats = instanced(
+      unit,
+      slatMat,
+      Array.from({ length: 30 }, (_, i): Placement => ({
+        pos: [0, 1.6, -depth / 2 + 0.12 + i * (depth / 30)],
+        size: [0.08, 3.2, 0.12],
+      })),
+    );
+    slats.castShadow = true;
+
+    return { unit, mullionMat, panes, edgeStrips, baseRails, mullions, slats };
+  }, [glass, edge, steel, slatMat, width, depth]);
+  useEffect(
+    () => () => {
+      parts.unit.dispose();
+      parts.mullionMat.dispose();
+      parts.panes.dispose();
+      parts.edgeStrips.dispose();
+      parts.baseRails.dispose();
+      parts.mullions.dispose();
+      parts.slats.dispose();
+    },
+    [parts],
+  );
 
   return (
     <group>
@@ -521,19 +605,9 @@ export default function Balcony() {
       </mesh>
 
       {/* Frameless glass railing, steel cap rail, warm LED at the base */}
-      {panels.map((p, i) => (
-        <group key={i} position={[p.x, 0, p.z]} rotation-y={p.side ? Math.PI / 2 : 0}>
-          <mesh material={glass} position={[0, 0.54, 0]} renderOrder={2}>
-            <boxGeometry args={[p.w, 1.04, 0.014]} />
-          </mesh>
-          <mesh material={edge} position={[p.w / 2 - 0.004, 0.54, 0]}>
-            <boxGeometry args={[0.008, 1.04, 0.016]} />
-          </mesh>
-          <mesh material={steel} position={[0, 0.04, 0]}>
-            <boxGeometry args={[p.w, 0.08, 0.06]} />
-          </mesh>
-        </group>
-      ))}
+      <primitive object={parts.panes} />
+      <primitive object={parts.edgeStrips} />
+      <primitive object={parts.baseRails} />
       <mesh material={steel} position={[cx, RAIL_TOP, RAIL_Z]} rotation-z={Math.PI / 2} castShadow>
         <cylinderGeometry args={[0.026, 0.026, width, 16]} />
       </mesh>
@@ -552,12 +626,7 @@ export default function Balcony() {
         <mesh material={interior} position={[cx, 1.7, 3.2]}>
           <planeGeometry args={[width, 3.4]} />
         </mesh>
-        {Array.from({ length: 9 }, (_, i) => (
-          <mesh key={i} position={[X0 + (width / 8) * i, 1.7, 0]}>
-            <boxGeometry args={[0.06, 3.4, 0.08]} />
-            <meshStandardMaterial color="#0f1013" metalness={0.6} roughness={0.4} />
-          </mesh>
-        ))}
+        <primitive object={parts.mullions} />
         <mesh position={[cx, 1.7, 0]} material={glass}>
           <boxGeometry args={[width, 3.4, 0.02]} />
         </mesh>
@@ -593,11 +662,7 @@ export default function Balcony() {
           <boxGeometry args={[0.04, 3.2, depth]} />
           <meshBasicMaterial color={new THREE.Color(0.5, 0.32, 0.16)} toneMapped={false} />
         </mesh>
-        {Array.from({ length: 30 }, (_, i) => (
-          <mesh key={i} material={slatMat} position={[0, 1.6, -depth / 2 + 0.12 + i * (depth / 30)]} castShadow>
-            <boxGeometry args={[0.08, 3.2, 0.12]} />
-          </mesh>
-        ))}
+        <primitive object={parts.slats} />
       </group>
 
       <Tower />

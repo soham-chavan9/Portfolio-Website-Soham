@@ -79,11 +79,12 @@ function Highway() {
   useFrame((_, delta) => {
     const pos = geometry.getAttribute("position") as THREE.BufferAttribute;
     const dt = Math.min(delta, 0.05);
-    cars.forEach((c, i) => {
+    for (let i = 0; i < cars.length; i++) {
+      const c = cars[i];
       c.t = (c.t + c.speed * dt + 1) % 1;
       c.curve.getPointAt(c.t, tmp);
       pos.setXYZ(i, tmp.x, tmp.y, tmp.z);
-    });
+    }
     pos.needsUpdate = true;
     material.uniforms.uPixelRatio.value = dpr;
   });
@@ -204,7 +205,8 @@ function Aircraft() {
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     const pos = geometry.getAttribute("position") as THREE.BufferAttribute;
-    paths.forEach((p, i) => {
+    for (let i = 0; i < paths.length; i++) {
+      const p = paths[i];
       let x: number, y: number, z: number;
       if (p.kind === "heli") {
         const a = t * p.speed * Math.PI * 2 + p.phase;
@@ -219,7 +221,7 @@ function Aircraft() {
       }
       pos.setXYZ(i * 2, x, y, z);
       pos.setXYZ(i * 2 + 1, x, y + (p.kind === "heli" ? 0.5 : 4), z);
-    });
+    }
     pos.needsUpdate = true;
     material.uniforms.uTime.value = t;
     material.uniforms.uPixelRatio.value = dpr;

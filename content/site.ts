@@ -1,9 +1,9 @@
 export const site = {
   name: "Soham Chavan",
-  headline: "Full-Stack Engineer, Mobile, Backend, and Platform",
-  navHeadline: "Full-Stack Engineer",
+  headline: "Full-Stack Software Engineer, Mobile, Backend, and AI",
+  navHeadline: "Full-Stack Software Engineer",
   description:
-    "Full-stack engineer shipping mobile, backend, and platform systems end to end, from database schema to App Store release.",
+    "Full-stack software engineer shipping React Native, TypeScript, Node.js, AWS, and AI systems end to end, from database schema to App Store release.",
   // TODO(soham): switch to custom domain when purchased
   url: "https://portfolio-website-soham.vercel.app",
   intro:
@@ -12,10 +12,10 @@ export const site = {
   roles: [
     "Full-stack engineer",
     "Mobile engineer",
-    "Release engineer",
+    "Backend engineer",
     "AI engineer",
   ],
-  email: "chavansoham9@gmail.com",
+  email: "chavansohamwork@gmail.com",
   github: "https://github.com/soham-chavan9",
   linkedin: "https://www.linkedin.com/in/soham-chavan9/",
   resumeHref: "/Soham_Chavan_Resume.pdf",
@@ -24,19 +24,23 @@ export const site = {
   stats: [
     {
       value: "1.5+",
-      label: "years shipping production software across two teams",
+      label: "years shipping production software",
+      short: "Years shipping",
     },
     {
       value: "110+",
-      label: "commits as team lead at OurFreedom.ai",
+      label: "commits shipped at OurFreedom.ai",
+      short: "Commits shipped",
     },
     {
-      value: "~40",
-      label: "backend modules I reviewed and maintained",
+      value: "0",
+      label: "App Store or Google Play release rejections",
+      short: "Store rejections",
     },
     {
       value: "10K+",
       label: "daily users on APIs I built at ACN Fiber",
+      short: "Daily API users",
     },
   ],
   nav: [

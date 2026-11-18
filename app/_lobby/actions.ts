@@ -6,7 +6,7 @@ import { lobby, writePref } from "./store";
 // Everything the HUD, the keyboard and the 3D markers can ask the lobby to do.
 
 const DEFAULT_FOCUS: Partial<Record<ScreenId, string>> = {
-  missions: featuredWork.systems[0].id,
+  missions: featuredWork.systems[0]?.id,
   arsenal: "p0",
 };
 
@@ -21,7 +21,10 @@ function syncHash(screen: ScreenId) {
 
 export function go(screen: ScreenId) {
   const s = lobby.get();
-  if (s.screen === screen && !s.comms) return;
+  if (s.screen === screen && !s.comms) {
+    if (s.settings) lobby.set({ settings: false });
+    return;
+  }
   if (screen === "lobby") audio.back();
   else audio.swoosh();
   lobby.set({
@@ -34,8 +37,9 @@ export function go(screen: ScreenId) {
 }
 
 export function cycle(dir: 1 | -1) {
+  if (screens.length === 0) return;
   const i = screens.findIndex((x) => x.id === lobby.get().screen);
-  const next = screens[(i + dir + screens.length) % screens.length];
+  const next = screens[(Math.max(0, i) + dir + screens.length) % screens.length];
   go(next.id);
 }
 
@@ -63,6 +67,11 @@ export function deploy() {
 export function openComms() {
   audio.click();
   lobby.set({ comms: true, settings: false });
+}
+
+export function toggleSettings(open = !lobby.get().settings) {
+  audio.click();
+  lobby.set({ settings: open });
 }
 
 export function emote() {
@@ -107,11 +116,17 @@ export function setQuality(q: "high" | "low") {
   lobby.set({ quality: q });
 }
 
+/** Explicit choice from Settings; overrides the OS reduced-motion setting. */
+export function setReducedMotion(on: boolean) {
+  writePref("motion", on ? "reduced" : "full");
+  lobby.set({ reducedMotion: on });
+}
+
 let toastTimer: number | undefined;
 export function toast(text: string) {
   window.clearTimeout(toastTimer);
-  lobby.set((s) => ({ toast: text, toastId: s.toastId + 1 }));
-  toastTimer = window.setTimeout(() => lobby.set({ toast: null }), 2400);
+  lobby.set((s) => ({ toast: text, toastOpen: true, toastId: s.toastId + 1 }));
+  toastTimer = window.setTimeout(() => lobby.set({ toastOpen: false }), 2400);
 }
 
 export async function copyEmail(email: string) {

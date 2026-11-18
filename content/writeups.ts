@@ -23,10 +23,10 @@ export const writeups: Writeup[] = [
     deck:
       "Store binaries and over-the-air updates for a production React Native app, with runtime fingerprints and backend version checks keeping users on safe builds.",
     meta: {
-      role: "Team lead, mobile and backend",
+      role: "Full-stack engineer, mobile and backend",
       when: "Jan 2026 to Jun 2026",
       surface: "iOS, Android",
-      stack: "React Native, Expo, expo-updates, EAS",
+      stack: "React Native, Expo, EAS, Play Core, Jest",
     },
     body: [
       { kind: "h", text: "The problem" },
@@ -44,13 +44,55 @@ export const writeups: Writeup[] = [
       {
         kind: "p",
         text:
-          "I also added a backend force-update protocol behind GET /api/app-version, consumed by useAppUpdate and useNativeVersionCheck on the client. That gave the app a single source of truth for continue, prompt, or force-update decisions.",
+          "Native changes were gated by version thresholds on the backend. On Android the app used Google Play Core in-app updates; on iOS it redirected to the App Store. That gave the app one source of truth for continue, prompt, or force-update decisions.",
+      },
+      {
+        kind: "p",
+        text:
+          "Publishing was channel-pinned across dev, preview, TestFlight, and production, and I wrote 19 Jest unit tests for the semantic-version logic, including malformed API responses.",
       },
       { kind: "h", text: "Result" },
       {
         kind: "p",
         text:
-          "The team could route each change through the right path, keep production bundles away from local environment values, and move users off outdated builds without a scramble. The release-hardening work cleared App Store review with no release rejections.",
+          "The team could route each change through the right path, keep production bundles away from local environment values, and move users off outdated builds without a scramble. I owned the App Store and Google Play submissions, with no release rejections.",
+      },
+    ],
+  },
+  {
+    slug: "recommendation-feed",
+    title: "A For You feed that learns from real interactions",
+    deck:
+      "The client for a Recombee-powered recommendation feed, with paging that never shows a post twice and event tracking that counts every interaction exactly once.",
+    meta: {
+      role: "Full-stack engineer, mobile and backend",
+      when: "Jan 2026 to Jun 2026",
+      surface: "iOS, Android",
+      stack: "React Native, Zustand, Recombee, TypeScript",
+    },
+    body: [
+      { kind: "h", text: "The problem" },
+      {
+        kind: "p",
+        text:
+          "A recommendation feed is only as good as the signals behind it. The feed had to scroll smoothly through an endless list, and every like, view, or share had to reach Recombee once, attributed to the recommendation that produced it, without leaking between accounts.",
+      },
+      { kind: "h", text: "What I built" },
+      {
+        kind: "p",
+        text:
+          "I built the feed client on a Zustand store with cursor pagination, infinite scroll, pull-to-refresh, duplicate filtering, and optimistic updates, so the list stayed fast and never repeated a post.",
+      },
+      {
+        kind: "p",
+        text:
+          "I instrumented seven interaction types with per-post recommendation attribution. Tracking used 300 ms debouncing, UUID idempotency keys, and per-session deduplication, and the event queue reset on logout so events could never cross user sessions.",
+      },
+      { kind: "h", text: "Result" },
+      {
+        kind: "p",
+        text:
+          "Recommendations trained on clean, deduplicated signals, and tracking stayed privacy-safe across account switches.",
       },
     ],
   },
@@ -60,28 +102,28 @@ export const writeups: Writeup[] = [
     deck:
       "Screening sensitive images on the device first, with server-side fallback and hash-based verdict caching for a platform where what got through mattered.",
     meta: {
-      role: "Team lead, mobile and backend",
+      role: "Full-stack engineer, mobile and backend",
       when: "Jan 2026 to Jun 2026",
       surface: "iOS, Android, server",
-      stack: "React Native, Swift, NestJS, AWS Rekognition",
+      stack: "React Native, Swift, NestJS, AWS Rekognition, S3",
     },
     body: [
       { kind: "h", text: "The problem" },
       {
         kind: "p",
         text:
-          "Families sent photos through posts, profiles, uploads, and physical mail. Every image needed screening, but shipping every file to the cloud first was slower, more expensive, and worse for privacy.",
+          "Families shared photos across five upload surfaces. Every image needed screening, but shipping every file to the cloud first was slower, more expensive, and worse for privacy.",
       },
       { kind: "h", text: "What I built" },
       {
         kind: "p",
         text:
-          "I built a custom Swift native module around Apple's SCSensitivityAnalyzer for supported iOS devices, then used AWS Rekognition from the NestJS backend as the fallback path. Files moved through an S3 staging lifecycle until a verdict decided whether they could be published.",
+          "I built a Swift bridge to Apple's on-device SCSensitivityAnalyzer for supported iOS devices, with AWS Rekognition on the backend as the fallback. Fallback files went through private S3 staging, and magic-byte validation rejected files whose contents did not match their claimed type.",
       },
       {
         kind: "p",
         text:
-          "The client computed a SHA-256 hash for each image, so repeated content could reuse a cached verdict instead of being scanned again.",
+          "Results were cached by SHA-256 hash, so repeated content reused a verdict instead of being scanned again. Sensitive images were blurred behind a warning on all five surfaces.",
       },
       { kind: "h", text: "Result" },
       {
@@ -97,7 +139,7 @@ export const writeups: Writeup[] = [
     deck:
       "A messaging subsystem with unread state, reporting, blocking, search, and group conversations designed as first-class product behavior.",
     meta: {
-      role: "Team lead, mobile and backend",
+      role: "Full-stack engineer, mobile and backend",
       when: "Jan 2026 to Jun 2026",
       surface: "iOS, Android, server",
       stack: "React Native, NestJS, MongoDB",
@@ -113,12 +155,12 @@ export const writeups: Writeup[] = [
       {
         kind: "p",
         text:
-          "I extended the backend with a ConversationReport entity and four new endpoints, added per-user unread aggregation and a mark-as-read API, then rebuilt the client around 1:1 and group DMs with adaptive polling and typing indicators.",
+          "I extended the backend with a conversation reporting model, four new endpoints, and per-user unread aggregation, then rebuilt the client for group chats with typing indicators.",
       },
       {
         kind: "p",
         text:
-          "The work also covered global search, post sharing, report and block flows, and a rewrite of the username and handle system across profiles and follows.",
+          "The client work also covered search and report and block flows, and it shipped alongside a deny-by-default iOS and Android age gate.",
       },
       { kind: "h", text: "Result" },
       {

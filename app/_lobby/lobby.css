@@ -17,7 +17,8 @@ html.lobby-lock body {
   --cyan: #6fe3ff;
   --ink: #eef2f8;
   --ink-2: #b9c3d1;
-  --ink-3: #8390a3;
+  /* Dimmest text; still >= 4.5:1 over the translucent glass on a lit sky. */
+  --ink-3: #8d99ad;
   --glass: rgba(9, 13, 21, 0.62);
   --glass-2: rgba(12, 16, 26, 0.84);
   --line: rgba(255, 255, 255, 0.1);
@@ -69,6 +70,29 @@ html.lobby-lock body {
 .lobby :focus-visible {
   outline: 2px solid var(--amber);
   outline-offset: 3px;
+}
+
+/* Panels take programmatic focus only; no ring around the whole shell. */
+.lobby .lb-panel:focus {
+  outline: none;
+}
+
+/* Clipped (chamfered) controls would cut an outside ring off: draw it inside. */
+.lobby .player-avatar:focus-visible,
+.lobby .banner:focus-visible,
+.lobby .squad:focus-visible,
+.lobby .mk-btn:focus-visible,
+.lobby .mnav button:focus-visible,
+.lobby .setting:focus-visible {
+  outline-offset: -3px;
+}
+
+/* Amber fills: an amber ring would vanish, so use the ink color inside. */
+.lobby .deploy:focus-visible,
+.lobby .btn-amber:focus-visible,
+.lobby .comms-btn:focus-visible {
+  outline: 2px solid var(--amber-ink);
+  outline-offset: -5px;
 }
 
 :where(.lobby) :where(h2, h3, h4, p) {
@@ -219,6 +243,20 @@ html.lobby-lock body {
   background: linear-gradient(90deg, var(--amber-deep), var(--amber-hot));
   box-shadow: 0 0 14px rgba(255, 178, 63, 0.8);
   transform-origin: left;
+  transition: transform 0.2s linear;
+}
+
+.boot-slow {
+  font-size: 12px;
+  color: var(--ink-2);
+  text-align: center;
+  animation: fade-in 0.4s ease both;
+}
+
+.boot-slow a {
+  color: var(--amber);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .boot-line {
@@ -380,6 +418,7 @@ html.lobby-lock body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
   padding: 8px 14px;
   font-size: 12px;
   font-weight: 600;
@@ -511,7 +550,9 @@ html.lobby-lock body {
   backdrop-filter: blur(12px) saturate(1.2);
   clip-path: var(--cut);
   animation: in-left 0.7s 0.05s var(--ease) both;
-  max-width: 340px;
+  min-width: 0;
+  /* Never wider than its grid column, so it can't slide under the tabs. */
+  max-width: min(340px, 100%);
 }
 
 .player-avatar {
@@ -550,16 +591,16 @@ html.lobby-lock body {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .clan {
   color: var(--amber);
 }
 
+/* Block (not flex) so a long headline ends in an ellipsis, not a hard cut. */
 .player-rank {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   margin-top: 2px;
   font-size: 11px;
   font-weight: 600;
@@ -567,6 +608,14 @@ html.lobby-lock body {
   text-transform: uppercase;
   color: var(--ink-2);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-rank svg {
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: -3px;
 }
 
 .xp {
@@ -617,11 +666,8 @@ html.lobby-lock body {
   animation: in-down 0.7s 0.12s var(--ease) both;
 }
 
-.lb-tabs ul {
+.lb-tablist {
   display: flex;
-  margin: 0;
-  padding: 0;
-  list-style: none;
 }
 
 .lb-tab {
@@ -651,7 +697,10 @@ html.lobby-lock body {
   font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  opacity: 0.8;
+}
+
+.lb-tab:focus-visible {
+  outline-offset: -2px;
 }
 
 .lb-tab::after {
@@ -667,15 +716,15 @@ html.lobby-lock body {
   transition: transform 0.3s var(--ease);
 }
 
-.lb-tab[aria-current="page"] {
+.lb-tab.is-active {
   color: var(--ink);
 }
 
-.lb-tab[aria-current="page"] .tab-plain {
+.lb-tab.is-active .tab-plain {
   color: var(--amber-hot);
 }
 
-.lb-tab[aria-current="page"]::after {
+.lb-tab.is-active::after {
   transform: scaleX(1);
 }
 
@@ -708,7 +757,7 @@ html.lobby-lock body {
   letter-spacing: 0.04em;
   border: 1px solid currentColor;
   border-radius: 3px;
-  opacity: 0.55;
+  opacity: 0.7;
 }
 
 /* Meta: stats + system buttons */
@@ -816,6 +865,9 @@ html.lobby-lock body {
 
 .banner:nth-child(2) {
   animation-delay: 0.28s;
+}
+
+.banner-reports {
   --tick: var(--cyan);
 }
 
@@ -871,6 +923,87 @@ a.banner:hover {
   color: var(--amber);
 }
 
+.banner-brief {
+  gap: 8px;
+}
+
+.brief-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  margin: 2px 0 0;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.brief-stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+  padding: 8px 10px;
+  background: rgba(6, 10, 18, 0.55);
+}
+
+.brief-stats dd {
+  margin: 0;
+  font-family: var(--font-big);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--amber-hot);
+}
+
+.brief-stats dt {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.brief-cta {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 8px;
+}
+
+.brief-cta a,
+.brief-cta button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 40px;
+  font-family: var(--font-big) !important;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  transition: filter 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.brief-primary {
+  color: var(--amber-ink) !important;
+  background: linear-gradient(180deg, var(--amber-hot), var(--amber) 55%, var(--amber-deep));
+}
+
+.brief-primary:hover {
+  filter: brightness(1.08);
+}
+
+.brief-secondary {
+  color: var(--ink) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid var(--line) !important;
+}
+
+.brief-secondary:hover {
+  border-color: var(--amber) !important;
+  color: var(--amber-hot) !important;
+}
+
 .reports {
   display: grid;
   gap: 2px;
@@ -908,6 +1041,13 @@ a.banner:hover {
   display: grid;
   gap: 8px;
   animation: in-right 0.7s 0.24s var(--ease) both;
+  /* The info card is read-only; only the buttons should block a drag-to-look. */
+  pointer-events: none !important;
+}
+
+.mode > .deploy,
+.mode > .mode-alt {
+  pointer-events: auto;
 }
 
 .mode-card {
@@ -980,10 +1120,31 @@ a.banner:hover {
   transition: filter 0.2s, transform 0.2s var(--ease);
 }
 
+.deploy {
+  flex-direction: column;
+  gap: 1px;
+}
+
+.deploy-sub {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+
+.deploy .kbd-hint {
+  position: absolute;
+  right: 26px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .deploy span {
   font-family: var(--font-big);
   font-weight: 800;
-  font-size: 32px;
+  font-size: 30px;
+  line-height: 1;
   letter-spacing: 0.22em;
   padding-left: 0.22em;
   text-transform: uppercase;
@@ -1011,14 +1172,23 @@ a.banner:hover {
   transform: translateY(1px) scale(0.99);
 }
 
+.player-rank .rank-short {
+  display: none;
+}
+
 .mode-alt {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 
-.mode-alt button {
-  height: 40px;
+.mode-alt button,
+.mode-alt a {
+  display: grid;
+  place-items: center;
+  height: 44px;
+  color: var(--ink);
+  text-decoration: none;
   font-family: var(--font-big) !important;
   font-weight: 600;
   font-size: 16px;
@@ -1030,7 +1200,8 @@ a.banner:hover {
   transition: border-color 0.2s, color 0.2s;
 }
 
-.mode-alt button:hover {
+.mode-alt button:hover,
+.mode-alt a:hover {
   border-color: var(--amber) !important;
   color: var(--amber-hot);
 }
@@ -1127,12 +1298,16 @@ a.banner:hover {
   border: 2px solid #0b0f18;
 }
 
+/* Explicit columns, so the row keeps its shape when there is no squad card. */
 .ticker-wrap {
+  grid-column: 2;
   min-width: 0;
   display: grid;
   gap: 6px;
   justify-items: center;
   animation: in-up 0.7s 0.36s var(--ease) both;
+  /* Read-only and as wide as the screen: let drags through to the city. */
+  pointer-events: none !important;
 }
 
 .locline {
@@ -1176,10 +1351,16 @@ a.banner:hover {
 }
 
 .dock {
+  grid-column: 3;
   display: grid;
   justify-items: end;
   gap: 8px;
   animation: in-up 0.7s 0.42s var(--ease) both;
+  pointer-events: none !important;
+}
+
+.dock-row {
+  pointer-events: auto;
 }
 
 .hints {
@@ -1246,7 +1427,7 @@ a.banner:hover {
   backdrop-filter: blur(18px) saturate(1.25);
   -webkit-backdrop-filter: blur(18px) saturate(1.25);
   clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
-  animation: panel-in 0.5s var(--ease) both;
+  animation: panel-in 0.45s var(--ease) both;
   user-select: text;
 }
 
@@ -1296,6 +1477,7 @@ a.banner:hover {
   gap: 14px;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 178, 63, 0.4) transparent;
+  overscroll-behavior: contain;
 }
 
 .panel-body::-webkit-scrollbar {
@@ -1409,7 +1591,7 @@ a.banner:hover {
   background: rgba(255, 255, 255, 0.06) !important;
 }
 
-.list-item[aria-selected="true"] {
+.list-item[aria-pressed="true"] {
   background: rgba(255, 178, 63, 0.1) !important;
   border-color: rgba(255, 178, 63, 0.7) !important;
 }
@@ -1420,7 +1602,7 @@ a.banner:hover {
   color: var(--cyan);
 }
 
-.list-item[aria-selected="true"] .list-code {
+.list-item[aria-pressed="true"] .list-code {
   color: var(--amber);
 }
 
@@ -1568,7 +1750,7 @@ a.banner:hover {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 42px;
+  height: 44px;
   padding: 0 16px !important;
   font-family: var(--font-big) !important;
   font-weight: 700;
@@ -1658,11 +1840,11 @@ a.banner:hover {
 }
 
 .card:hover img,
-.card[aria-selected="true"] img {
+.card[aria-pressed="true"] img {
   filter: none;
 }
 
-.card[aria-selected="true"] {
+.card[aria-pressed="true"] {
   border-color: var(--amber) !important;
   background: rgba(255, 178, 63, 0.08) !important;
 }
@@ -1834,6 +2016,7 @@ a.banner:hover {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 12px;
+  min-height: 44px;
   text-align: left;
   color: var(--ink-3);
 }
@@ -2064,6 +2247,7 @@ a.banner:hover {
   display: flex !important;
   justify-content: space-between;
   align-items: center;
+  min-height: 44px;
   padding: 10px 12px !important;
   font-size: 13px;
   border: 1px solid var(--line) !important;
@@ -2185,8 +2369,13 @@ a.banner:hover {
   left: 50%;
   top: calc(var(--gutter) + var(--top-h) + 10px);
   transform: translate(-50%, -12px);
+  /* Without this, left: 50% caps the shrink-to-fit width at half the screen. */
+  width: max-content;
+  max-width: calc(100vw - 2 * var(--gutter));
   margin: 0;
   padding: 10px 18px;
+  text-align: center;
+  overflow-wrap: anywhere;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -2216,6 +2405,8 @@ a.banner:hover {
   left: 0;
   top: 0;
   pointer-events: auto;
+  /* Hidden until the scene has projected an anchor (no flash at 0,0). */
+  visibility: hidden;
   animation: fade-in 0.6s 0.3s var(--ease) both;
 }
 
@@ -2258,7 +2449,7 @@ a.banner:hover {
 
 .mk-sub {
   font-size: 10.5px;
-  color: #8390a3;
+  color: var(--ink-3);
 }
 
 .mk-btn.is-selected {
@@ -2293,6 +2484,13 @@ a.banner:hover {
   }
 }
 
+/* Tabs still carry their plain labels here, so the player column is narrow. */
+@media (min-width: 1181px) and (max-width: 1320px) {
+  .clan {
+    display: none;
+  }
+}
+
 @media (max-width: 1180px) {
   .lb-stats {
     display: none;
@@ -2321,9 +2519,18 @@ a.banner:hover {
 }
 
 @media (max-width: 980px) {
-  .player-rank,
   .xp {
     display: none;
+  }
+  .player-rank {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+  .player-rank .rank-long {
+    display: none;
+  }
+  .player-rank .rank-short {
+    display: inline;
   }
   .player-name {
     font-size: 17px;
@@ -2341,6 +2548,12 @@ a.banner:hover {
   .hud-bottom {
     grid-template-columns: minmax(0, 1fr) auto;
   }
+  .ticker-wrap {
+    grid-column: 1;
+  }
+  .dock {
+    grid-column: 2;
+  }
   .squad {
     display: none !important;
   }
@@ -2354,10 +2567,11 @@ a.banner:hover {
     font-size: 13px;
   }
   .hud-top {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
     top: max(10px, env(safe-area-inset-top));
-    left: 10px;
-    right: 10px;
+    left: max(10px, env(safe-area-inset-left));
+    right: max(10px, env(safe-area-inset-right));
   }
   .lb-tabs {
     display: none;
@@ -2369,8 +2583,8 @@ a.banner:hover {
     font-size: 16px;
   }
   .icon-btn {
-    height: 38px;
-    min-width: 38px;
+    height: 44px;
+    min-width: 44px;
     padding: 0 8px !important;
   }
   .hide-touch {
@@ -2400,10 +2614,16 @@ a.banner:hover {
     display: none;
   }
   .mode-alt {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .mode-alt button,
+  .mode-alt a {
+    font-size: 13px;
+    letter-spacing: 0.1em;
   }
   .mode-alt .show-mobile {
-    display: block;
+    display: grid;
   }
   .lb-panel {
     top: auto;
@@ -2411,10 +2631,16 @@ a.banner:hover {
     right: 0;
     bottom: calc(62px + env(safe-area-inset-bottom));
     width: auto;
+    /* dvh: the sheet tracks the visible area as mobile toolbars come and go. */
     max-height: 60vh;
+    max-height: 60dvh;
     height: 60vh;
+    height: 60dvh;
     clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%, 0 14px);
     animation: sheet-in 0.45s var(--ease) both;
+  }
+  .lb-panel .icon-btn {
+    min-width: 44px;
   }
   .panel-head {
     padding: 14px 14px 10px 16px;
@@ -2433,7 +2659,7 @@ a.banner:hover {
     display: none !important;
   }
   .settings {
-    top: calc(max(10px, env(safe-area-inset-top)) + 46px);
+    top: calc(max(10px, env(safe-area-inset-top)) + 52px);
     right: 10px;
     width: min(280px, calc(100% - 20px));
   }
@@ -2442,18 +2668,24 @@ a.banner:hover {
     left: 0;
     right: 0;
     bottom: 0;
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    display: block;
     padding-bottom: env(safe-area-inset-bottom);
     background: rgba(6, 9, 15, 0.92);
     border-top: 1px solid var(--line);
     backdrop-filter: blur(14px);
     animation: in-up 0.5s var(--ease) both;
   }
+  /* One equal column per screen, however many screens there are. */
+  .mnav-list {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
   .mnav button {
     display: grid !important;
     justify-items: center;
     gap: 3px;
+    min-width: 0;
     height: 62px;
     padding-top: 10px !important;
     font-size: 9.5px;
@@ -2463,10 +2695,16 @@ a.banner:hover {
     color: var(--ink-3);
     position: relative;
   }
-  .mnav button[aria-current="page"] {
+  .mnav button span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mnav button.is-active {
     color: var(--amber-hot);
   }
-  .mnav button[aria-current="page"]::before {
+  .mnav button.is-active::before {
     content: "";
     position: absolute;
     top: 0;
@@ -2500,6 +2738,19 @@ a.banner:hover {
   }
   .mk-sub {
     display: none;
+  }
+}
+
+/* Touch screens wider than a phone (tablets) still get 44px targets. */
+@media (pointer: coarse) {
+  .icon-btn {
+    height: 44px;
+    min-width: 44px;
+  }
+  .reports a,
+  .back-btn,
+  .comms-btn {
+    min-height: 44px;
   }
 }
 
@@ -2556,14 +2807,14 @@ a.banner:hover {
 @keyframes panel-in {
   from {
     opacity: 0;
-    transform: translateX(48px);
+    transform: translateX(32px);
   }
 }
 
 @keyframes sheet-in {
   from {
     opacity: 0;
-    transform: translateY(40px);
+    transform: translateY(32px);
   }
 }
 
@@ -2608,12 +2859,16 @@ a.banner:hover {
   }
 }
 
+/* Reduced motion: everything lands in its final state at once. Delays go too,
+   or staggered entrances would sit invisible before popping in. */
 .is-reduced *,
 .is-reduced *::before,
 .is-reduced *::after {
   animation-duration: 0.01ms !important;
+  animation-delay: 0s !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
+  transition-delay: 0s !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2621,7 +2876,9 @@ a.banner:hover {
   .lobby *::before,
   .lobby *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
   }
 }

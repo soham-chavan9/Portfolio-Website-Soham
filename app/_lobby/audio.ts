@@ -23,6 +23,7 @@ class LobbyAudio {
   private delayIn!: GainNode;
   private noise!: AudioBuffer;
   private timer: number | null = null;
+  private suspendTimer: number | undefined;
   private nextBar = 0;
   private bar = 0;
   private nextHorn = 0;
@@ -34,11 +35,15 @@ class LobbyAudio {
     return this.ctx !== null;
   }
 
-  /** Must run inside a user gesture. Safe to call repeatedly. */
+  /**
+   * Must run inside a user gesture. Safe to call repeatedly. While sound is
+   * off no context is created (or the existing one stays suspended), so a
+   * muted lobby doesn't keep an audio thread running.
+   */
   start() {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !this.soundOn) return;
     if (this.ctx) {
-      if (this.ctx.state === "suspended") void this.ctx.resume();
+      this.resume();
       return;
     }
     const AC =
@@ -100,16 +105,44 @@ class LobbyAudio {
     document.addEventListener("visibilitychange", this.onVisibility);
   }
 
+  /** Leaving the lobby: tear everything down. start() can build it again. */
+  stop() {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    if (this.timer !== null) window.clearInterval(this.timer);
+    this.timer = null;
+    window.clearTimeout(this.suspendTimer);
+    document.removeEventListener("visibilitychange", this.onVisibility);
+    this.ctx = null;
+    ctx.close().catch(() => {});
+  }
+
+  private resume() {
+    const ctx = this.ctx;
+    if (!ctx || !this.soundOn || document.hidden || ctx.state === "running") return;
+    ctx.resume().catch(() => {});
+  }
+
   private onVisibility = () => {
     if (!this.ctx) return;
-    if (document.hidden) void this.ctx.suspend();
-    else if (this.soundOn) void this.ctx.resume();
+    if (document.hidden) this.ctx.suspend().catch(() => {});
+    else this.resume();
   };
 
   setSound(on: boolean) {
     this.soundOn = on;
-    if (!this.ctx) return;
-    this.master.gain.setTargetAtTime(on ? 0.9 : 0, this.ctx.currentTime, 0.15);
+    const ctx = this.ctx;
+    if (!ctx) return;
+    window.clearTimeout(this.suspendTimer);
+    this.master.gain.setTargetAtTime(on ? 0.9 : 0, ctx.currentTime, 0.15);
+    if (on) {
+      this.resume();
+    } else {
+      // Let the fade finish, then stop the audio thread entirely.
+      this.suspendTimer = window.setTimeout(() => {
+        if (!this.soundOn && this.ctx) this.ctx.suspend().catch(() => {});
+      }, 700);
+    }
   }
 
   setMusic(on: boolean) {

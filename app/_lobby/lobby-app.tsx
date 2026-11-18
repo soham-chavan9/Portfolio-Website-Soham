@@ -14,7 +14,11 @@ const Scene = dynamic(() => import("./scene/scene"), { ssr: false });
 
 function hashScreen(): ScreenId | null {
   const h = window.location.hash.replace("#", "");
-  return screens.some((s) => s.id === h) ? (h as ScreenId) : null;
+  return screens.find((s) => s.id === h)?.id ?? null;
+}
+
+function isTyping(t: HTMLElement | null) {
+  return !!t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 }
 
 export default function LobbyApp() {
@@ -27,13 +31,19 @@ export default function LobbyApp() {
     const touch = window.matchMedia("(pointer: coarse)").matches;
     const cores = navigator.hardwareConcurrency ?? 8;
     const q = readPref("quality");
+    // An explicit choice in Settings wins; otherwise follow the OS, live.
+    const motion = () => {
+      const pref = readPref("motion");
+      return pref === "reduced" ? true : pref === "full" ? false : mq.matches;
+    };
     lobby.set({
-      reducedMotion: mq.matches,
+      reducedMotion: motion(),
       touch,
       quality: q === "high" || q === "low" ? q : touch || cores <= 4 ? "low" : "high",
       sound: readPref("sound") !== "0",
       music: readPref("music") !== "0",
     });
+    const onMotion = () => lobby.set({ reducedMotion: motion() });
 
     const onMove = (e: PointerEvent) => {
       pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -48,40 +58,57 @@ export default function LobbyApp() {
         audio.start();
       }
     };
+    mq.addEventListener("change", onMotion);
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerdown", wake);
     window.addEventListener("keydown", wake);
     document.documentElement.classList.add("lobby-lock");
     return () => {
+      mq.removeEventListener("change", onMotion);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", wake);
       window.removeEventListener("keydown", wake);
       document.documentElement.classList.remove("lobby-lock");
+      // Client-side navigation away (Classic view, field reports) must not
+      // leave the lobby music playing over the next page.
+      audio.stop();
     };
   }, []);
 
-  // Deep links: /#missions opens Missions once the lobby is live.
+  // Deep links: /#missions opens Missions once the lobby is live, and so
+  // does editing the hash afterwards.
   useEffect(() => {
     if (phase !== "lobby") return;
-    const target = hashScreen();
-    if (target && target !== lobby.get().screen) {
-      lobby.set({ screen: target, focus: null });
-      go(target);
-    }
+    const open = () => {
+      const target = hashScreen();
+      if (target) go(target);
+    };
+    open();
+    window.addEventListener("hashchange", open);
+    return () => window.removeEventListener("hashchange", open);
   }, [phase]);
 
-  // Controller-style keyboard.
+  // Controller-style keyboard. Never while typing, never with a modifier
+  // (browser and OS shortcuts keep working), never on key repeat.
   useEffect(() => {
     if (phase !== "lobby") return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.defaultPrevented || e.isComposing || e.metaKey || e.ctrlKey || e.altKey) return;
+      // Autofill can dispatch keydown events without a key.
+      if (typeof e.key !== "string") return;
       const t = e.target instanceof HTMLElement ? e.target : null;
-      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (isTyping(t)) return;
       const s = lobby.get();
       const k = e.key.toLowerCase();
       if (k === "escape") {
-        back();
-      } else if (k === "q") {
+        if (s.settings || s.comms || s.screen !== "lobby") {
+          back();
+          e.preventDefault();
+        }
+        return;
+      }
+      if (e.repeat) return;
+      if (k === "q") {
         cycle(-1);
       } else if (k === "e") {
         cycle(1);
@@ -89,9 +116,9 @@ export default function LobbyApp() {
         emote();
       } else if (k === "m") {
         setSound(!s.sound);
-      } else if (/^[1-6]$/.test(k)) {
+      } else if (/^[1-9]$/.test(k) && Number(k) <= screens.length) {
         go(screens[Number(k) - 1].id);
-      } else if (k === "enter" && s.screen === "lobby" && (t === document.body || !t)) {
+      } else if (k === "enter" && s.screen === "lobby" && !s.comms && !s.settings && (!t || t === document.body)) {
         deploy();
       } else {
         return;
@@ -103,7 +130,7 @@ export default function LobbyApp() {
   }, [phase]);
 
   return (
-    <div className={`lobby phase-${phase} ${reduced ? "is-reduced" : ""}`}>
+    <div className={`lobby phase-${phase}${reduced ? " is-reduced" : ""}`}>
       <a className="skip-link" href="/classic">
         Skip the 3D lobby: open the classic page
       </a>

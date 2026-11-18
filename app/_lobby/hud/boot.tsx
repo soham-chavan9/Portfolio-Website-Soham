@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { bootLines, tips, viewpoint } from "@/content/lobby";
 import { site } from "@/content/site";
 import { setSound, skipIntro, start } from "../actions";
@@ -9,6 +9,28 @@ import { lobby, useLobby } from "../store";
 import { Emblem, IconMute, IconSound } from "./icons";
 
 const MIN_BOOT_MS = 1900;
+/** After this long without a ready scene, offer the plain page. */
+const SLOW_BOOT_MS = 9000;
+
+/** Keys that should never count as "press any key" (and keep their default). */
+const PASSIVE_KEYS = new Set([
+  "Tab",
+  "Shift",
+  "Control",
+  "Alt",
+  "Meta",
+  "CapsLock",
+  "NumLock",
+  "ScrollLock",
+  "Escape",
+  "ContextMenu",
+  "Fn",
+  "Dead",
+  "Unidentified",
+  "AudioVolumeUp",
+  "AudioVolumeDown",
+  "AudioVolumeMute",
+]);
 
 export function useNycClock() {
   const [time, setTime] = useState("");
@@ -18,10 +40,14 @@ export function useNycClock() {
       minute: "2-digit",
       timeZone: "America/New_York",
     });
-    const tick = () => setTime(fmt.format(new Date()));
+    let id = 0;
+    const tick = () => {
+      setTime(fmt.format(new Date()));
+      // Wake on the next minute boundary so the clock never lags a minute.
+      id = window.setTimeout(tick, 60_000 - (Date.now() % 60_000) + 50);
+    };
     tick();
-    const id = window.setInterval(tick, 15000);
-    return () => window.clearInterval(id);
+    return () => window.clearTimeout(id);
   }, []);
   return time;
 }
@@ -32,56 +58,84 @@ export function BootScreen() {
   const [progress, setProgress] = useState(0);
   const [line, setLine] = useState(0);
   const [tip, setTip] = useState(0);
-  const startedAt = useRef(0);
+  const [slow, setSlow] = useState(false);
 
+  // Random tip after hydration so server and client markup agree.
   useEffect(() => {
-    setTip(Math.floor(Math.random() * tips.length));
+    if (tips.length > 1) setTip(Math.floor(Math.random() * tips.length));
   }, []);
 
   useEffect(() => {
     if (phase !== "boot") return;
-    startedAt.current = performance.now();
+    const startedAt = performance.now();
+    let p = 0;
+    let handoff = 0;
+    const slowId = window.setTimeout(() => setSlow(true), SLOW_BOOT_MS);
     const id = window.setInterval(() => {
-      const elapsed = performance.now() - startedAt.current;
+      const elapsed = performance.now() - startedAt;
       const isReady = lobby.get().sceneReady;
-      setProgress((p) => {
-        const target = isReady ? 1 : Math.min(0.88, elapsed / 3200);
-        return p + (target - p) * (isReady ? 0.2 : 0.08);
-      });
-      setLine(Math.min(bootLines.length - 1, Math.floor(elapsed / 520)));
+      const target = isReady ? 1 : Math.min(0.88, elapsed / 3200);
+      p += (target - p) * (isReady ? 0.2 : 0.08);
+      setProgress(p);
+      setLine(Math.min(Math.max(0, bootLines.length - 1), Math.floor(elapsed / 520)));
       if (isReady && elapsed > MIN_BOOT_MS) {
         window.clearInterval(id);
-        let returning = false;
-        try {
-          returning = window.sessionStorage.getItem("lobby:started") === "1";
-        } catch {
-          /* fine */
-        }
-        lobby.set({ phase: returning ? "lobby" : "title" });
+        // Fill the bar before handing off, instead of cutting away mid-way.
+        setProgress(1);
+        handoff = window.setTimeout(() => {
+          let returning = false;
+          try {
+            returning = window.sessionStorage.getItem("lobby:started") === "1";
+          } catch {
+            /* fine */
+          }
+          lobby.set({ phase: returning ? "lobby" : "title" });
+        }, 240);
       }
     }, 50);
-    return () => window.clearInterval(id);
+    return () => {
+      window.clearInterval(id);
+      window.clearTimeout(slowId);
+      window.clearTimeout(handoff);
+    };
   }, [phase]);
 
   if (phase !== "boot") return null;
   const pct = Math.round(progress * 100);
   return (
-    <div className="boot" role="status" aria-live="polite">
+    <div className="boot" aria-busy={!ready}>
       <div className="boot-center">
         <Emblem className="boot-emblem" />
         <p className="boot-name">{site.name}</p>
-        <div className="boot-bar" aria-hidden>
+        <div
+          className="boot-bar"
+          role="progressbar"
+          aria-label="Loading the 3D lobby"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={pct}
+        >
           <span style={{ transform: `scaleX(${progress})` }} />
         </div>
-        <p className="boot-line">
-          <span>{ready ? "Ready" : bootLines[line]}</span>
+        <p className="boot-line" aria-hidden>
+          <span>{ready ? "Ready" : (bootLines[line] ?? "Loading")}</span>
           <b>{pct}%</b>
         </p>
+        <p className="sr-only" role="status">
+          {ready ? "Lobby ready" : "Loading the 3D lobby"}
+        </p>
+        {slow && !ready && (
+          <p className="boot-slow">
+            Taking a while? <Link href="/classic">Open the classic page</Link>
+          </p>
+        )}
       </div>
-      <p className="boot-tip">
-        <span>Tip</span>
-        {tips[tip]}
-      </p>
+      {tips[tip] && (
+        <p className="boot-tip">
+          <span>Tip</span>
+          {tips[tip]}
+        </p>
+      )}
     </div>
   );
 }
@@ -95,10 +149,15 @@ export function TitleScreen() {
   useEffect(() => {
     if (phase !== "title") return;
     const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.isComposing || e.repeat) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.key === "Tab") return;
+      // Autofill can dispatch keydown without a key; F-keys keep reload, devtools, etc.
+      if (typeof e.key !== "string" || PASSIVE_KEYS.has(e.key) || /^F\d{1,2}$/.test(e.key)) return;
       const t = e.target instanceof Element ? e.target : null;
-      if (t?.closest("[data-title-control]")) return;
+      // Links (the skip link, Classic view) and title controls act on their own.
+      if (t?.closest("a, input, select, textarea, [data-title-control]")) return;
+      // A focused button already clicks on Enter / Space.
+      if (t?.closest("button") && (e.key === "Enter" || e.key === " ")) return;
       e.preventDefault();
       start();
     };
@@ -156,7 +215,7 @@ export function IntroOverlay() {
   useEffect(() => {
     if (phase !== "intro") return;
     const skip = (e: Event) => {
-      if (e instanceof KeyboardEvent && (e.metaKey || e.ctrlKey)) return;
+      if (e instanceof KeyboardEvent && (e.metaKey || e.ctrlKey || e.altKey || PASSIVE_KEYS.has(e.key))) return;
       skipIntro();
     };
     const id = window.setTimeout(() => {
@@ -177,7 +236,9 @@ export function IntroOverlay() {
       <div className="intro-bar bottom" />
       <div className="intro-caption">
         <p>{viewpoint.name}</p>
-        <p>{time} ET · 140 m above the Hudson</p>
+        <p>
+          {time && `${time} ET · `}140 m above the Hudson
+        </p>
       </div>
       <p className="intro-skip">Press any key to skip</p>
     </div>
