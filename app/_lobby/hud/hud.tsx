@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { landmarks, operatorAvatar, rangeLabel, screens } from "@/content/scene";
-import { currentRole, currentSchool, highlights, resume, spanLabel } from "@/content/resume";
+import { bulletSource, currentRole, currentSchool, highlights, resume, spanLabel } from "@/content/resume";
 import { audio } from "../audio";
 import {
   cycle,
@@ -15,10 +15,11 @@ import {
   setQuality,
   setReducedMotion,
   setSound,
+  showProof,
   toggleSettings,
 } from "../actions";
 import { focusLandmark, markerMeta, markerScreen } from "../marker-meta";
-import { lobby, useLobby } from "../store";
+import { globeTag, lobby, useLobby } from "../store";
 import {
   IconArrow,
   IconExpand,
@@ -33,16 +34,17 @@ import {
 } from "./icons";
 import { BackButton, ScreenPanel, hasPanel, hover, restoreFocus, trackOpeners } from "./panels";
 
-function PlayerCard() {
+/** Console bar, tier one, left: who this is. The avatar opens Contact. */
+function Identity() {
   return (
     <div
-      className="player"
+      className="bar-id"
       onMouseEnter={() => lobby.set({ hovered: "player" })}
       onMouseLeave={() => lobby.get().hovered === "player" && lobby.set({ hovered: null })}
     >
       <button
         type="button"
-        className="player-avatar"
+        className="bar-avatar"
         data-opener="avatar"
         onClick={() => go("contact")}
         onPointerEnter={hover}
@@ -50,16 +52,15 @@ function PlayerCard() {
       >
         <img src={operatorAvatar} alt="" width={128} height={128} decoding="async" />
       </button>
-      <div className="player-info">
-        <p className="player-name">{resume.name}</p>
-        <p className="player-rank">
-          <span className="rank-long">
-            {resume.headline} · {resume.location}
+      <div className="bar-id-text">
+        <p className="bar-name">{resume.name}</p>
+        <p className="bar-role">
+          {resume.headline}
+          <span className="bar-loc">
+            <span aria-hidden> · </span>
+            <span className="sr-only">, </span>
+            {resume.location}
           </span>
-          <span className="rank-short">{resume.headline}</span>
-        </p>
-        <p className="xp-label">
-          {currentSchool.degree}, {currentSchool.school.split(" ")[0]} · {currentSchool.span.end}
         </p>
       </div>
     </div>
@@ -178,6 +179,9 @@ function Meta() {
             <IconExpand />
           </button>
         )}
+        <Link className="bar-classic" href="/classic" onPointerEnter={hover}>
+          Classic view
+        </Link>
       </div>
     </div>
   );
@@ -266,70 +270,102 @@ function Settings() {
   return open ? <SettingsDialog /> : null;
 }
 
-function Brief() {
+/** The degree in progress, as one caption line (below the widths where tier two has room for it). */
+function DegreeCaption({ className }: { className: string }) {
   return (
-    <aside className="banners" aria-label="Highlights">
-      <div className="banner banner-brief">
-        <span className="banner-kicker">
-          <i className="live" aria-hidden /> Highlights
-        </span>
-        <dl className="brief-stats">
-          {highlights.map((h) => (
-            <div key={h.label} title={`${h.value} ${h.label}`}>
-              <dt>{h.label}</dt>
-              <dd>{h.value}</dd>
-            </div>
-          ))}
-        </dl>
-        <div className="brief-cta">
-          <button type="button" className="brief-primary" data-opener="brief-contact" onPointerEnter={hover} onClick={openContact}>
-            Contact <IconArrow width={14} height={14} />
-          </button>
-        </div>
-      </div>
-    </aside>
+    <p className={className}>
+      <span className="deg-a">{currentSchool.degree}</span>
+      <span className="deg-sep"> · </span>
+      <span className="deg-b">
+        {currentSchool.school} · {currentSchool.span.end}
+      </span>
+    </p>
   );
 }
 
-function ModeCard() {
+/** Console bar, tier two, left: the degree in progress. */
+function School() {
   return (
-    <aside className="mode" aria-label="Most recent role">
-      <div className="mode-card">
-        <p className="mode-kicker">Most recent role</p>
-        <p className="mode-title">{currentRole.org}</p>
-        <p className="mode-meta">{currentRole.title}</p>
-        <p className="mode-target">
-          {currentRole.location} · {spanLabel(currentRole.span)}
-        </p>
-      </div>
-      <button
-        type="button"
-        className="deploy"
-        data-opener="deploy"
-        aria-label="Open Experience"
-        onPointerEnter={hover}
-        onClick={deploy}
-      >
-        <span>Experience</span>
-        <small className="deploy-sub" aria-hidden>
-          View work history
-        </small>
-        <kbd className="kbd-hint" aria-hidden>
-          Enter
-        </kbd>
-      </button>
-      <div className="mode-alt">
-        <button type="button" data-opener="alt-projects" onPointerEnter={hover} onClick={() => go("projects")}>
+    <div className="bar-school">
+      <p className="bar-degree">{currentSchool.degree}</p>
+      <p className="bar-uni">
+        {currentSchool.school} · {currentSchool.span.end}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * Console bar, tier two: four numbers quoted from resume bullets. Each one
+ * opens Experience on the bullet it comes from (principle 4: one step to proof).
+ */
+function Readouts() {
+  return (
+    <div className="bar-readouts" role="group" aria-label="Highlights">
+      {highlights.map((h, i) => {
+        const org = bulletSource(h.source)?.role.org ?? "";
+        return (
+          <button
+            key={h.source}
+            type="button"
+            className="readout"
+            style={{ "--i": i } as CSSProperties}
+            data-opener={`readout-${h.source}`}
+            onPointerEnter={hover}
+            onClick={() => showProof(h.source)}
+          >
+            <span className="readout-top">
+              <span className="readout-value">{h.value}</span>
+              <span className="readout-org" aria-hidden>
+                {org}
+              </span>
+            </span>
+            <span className="readout-label">
+              {h.label}
+              <IconArrow className="readout-go" width={14} height={14} aria-hidden />
+            </span>
+            <span className="sr-only">, {org}. Show the source in Experience.</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Bottom right on Home: the most recent role, and the way into Experience. */
+function Feature() {
+  const lead = currentRole.bullets[0];
+  return (
+    <section className="latest" aria-labelledby="latest-org">
+      <h2 className="latest-org" id="latest-org">
+        {currentRole.org}
+      </h2>
+      <p className="latest-role">
+        {currentRole.title} · {currentRole.location}
+      </p>
+      <p className="latest-span">
+        Most recent role · <span className="latest-dates">{spanLabel(currentRole.span)}</span>
+      </p>
+      {lead && <p className="latest-lead">{lead.text}</p>}
+      <div className="latest-actions">
+        <button type="button" className="btn-primary" data-opener="deploy" onPointerEnter={hover} onClick={deploy}>
+          View experience
+          <IconArrow width={16} height={16} aria-hidden />
+          <kbd className="kbd-hint" aria-hidden>
+            Enter
+          </kbd>
+        </button>
+        <button type="button" className="btn-ghost" data-opener="alt-projects" onPointerEnter={hover} onClick={() => go("projects")}>
           Projects
         </button>
-        <button type="button" data-opener="alt-skills" onPointerEnter={hover} onClick={() => go("skills")}>
-          Skills
-        </button>
-        <button type="button" className="show-mobile" data-opener="alt-contact" onClick={openContact}>
+        <button type="button" className="btn-ghost" data-opener="alt-contact" onPointerEnter={hover} onClick={openContact}>
           Contact
         </button>
+        <Link className="btn-ghost show-narrow" href="/classic">
+          Classic view
+        </Link>
       </div>
-    </aside>
+    </section>
   );
 }
 
@@ -337,6 +373,7 @@ function Dock() {
   const touch = useLobby((s) => s.touch);
   return (
     <div className="dock">
+      <DegreeCaption className="degree-cap dock-degree" />
       {!touch && (
         <p className="hints" aria-hidden>
           <span><kbd>Q</kbd><kbd>E</kbd> Tabs</span>
@@ -355,8 +392,8 @@ function Dock() {
         <a className="icon-btn" href={resume.linkedin} target="_blank" rel="noreferrer" onPointerEnter={hover} aria-label="LinkedIn (opens in a new tab)">
           <IconLinkedin />
         </a>
-        <button type="button" className="comms-btn" data-opener="dock-contact" onPointerEnter={hover} onClick={openContact}>
-          <IconMail /> Contact
+        <button type="button" className="dock-contact" data-opener="dock-contact" onPointerEnter={hover} onClick={openContact}>
+          <IconMail aria-hidden /> Contact
         </button>
       </div>
     </div>
@@ -368,6 +405,8 @@ function Scope() {
   const focus = useLobby((s) => s.focus);
   const inset = useLobby((s) => s.panelInset);
   if (screen !== "experience" && screen !== "projects") return null;
+  // No selection (a readout opened an unpinned bullet): no reticle either.
+  if (!focus) return null;
   const landmark = focusLandmark(screen, focus);
   if (!landmark) return null;
   return (
@@ -446,6 +485,45 @@ function MarkerLabels() {
   );
 }
 
+/**
+ * The skills globe's label: the hovered (or picked) skill and its resume group,
+ * pinned above its tile. Pointer-only; the Skills panel lists every skill.
+ */
+function GlobeTag() {
+  const screen = useLobby((s) => s.screen);
+  const ref = useRef<HTMLDivElement>(null);
+  const name = useRef<HTMLElement>(null);
+  const group = useRef<HTMLSpanElement>(null);
+  const live = screen === "skills";
+
+  useEffect(() => {
+    if (!live) return;
+    let raf = 0;
+    const loop = () => {
+      const el = ref.current;
+      if (el && name.current && group.current) {
+        el.style.visibility = globeTag.on ? "visible" : "hidden";
+        if (globeTag.on) {
+          el.style.transform = `translate3d(${globeTag.x.toFixed(1)}px, ${globeTag.y.toFixed(1)}px, 0) translate(-50%, calc(-100% - 30px))`;
+          if (name.current.textContent !== globeTag.name) name.current.textContent = globeTag.name;
+          if (group.current.textContent !== globeTag.group) group.current.textContent = globeTag.group;
+        }
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [live]);
+
+  if (!live) return null;
+  return (
+    <div ref={ref} className="globe-tag" aria-hidden>
+      <b ref={name} />
+      <span ref={group} />
+    </div>
+  );
+}
+
 function MobileNav() {
   const screen = useLobby((s) => s.screen);
   return (
@@ -498,15 +576,34 @@ export default function Hud() {
     <div className={`hud ${inLobby ? "is-lobby" : "is-screen"}`}>
       <h1 className="sr-only">{resume.name}</h1>
       <MarkerLabels />
-      <header className="hud-top">
-        <PlayerCard />
-        <Tabs />
-        <Meta />
+      <GlobeTag />
+      <header className="hud-bar">
+        <span className="bar-corner tl" aria-hidden />
+        <span className="bar-corner br" aria-hidden />
+        <div className="bar-row bar-main">
+          <Identity />
+          <Tabs />
+          <Meta />
+        </div>
+        {/* Retracts when a section opens; inert so it leaves the tab order too. */}
+        <div className="bar-row bar-tele" inert={!inLobby}>
+          <School />
+          <Readouts />
+          {/* Phones and portrait tablets: no dock, so the degree and profile links ride in the bar. */}
+          <div className="bar-links">
+            <DegreeCaption className="degree-cap" />
+            <a className="icon-btn" href={resume.github} target="_blank" rel="noreferrer" aria-label="GitHub (opens in a new tab)">
+              <IconGithub />
+            </a>
+            <a className="icon-btn" href={resume.linkedin} target="_blank" rel="noreferrer" aria-label="LinkedIn (opens in a new tab)">
+              <IconLinkedin />
+            </a>
+          </div>
+        </div>
       </header>
       {inLobby && (
         <>
-          <Brief />
-          <ModeCard />
+          <Feature />
           <footer className="hud-bottom">
             <Dock />
           </footer>

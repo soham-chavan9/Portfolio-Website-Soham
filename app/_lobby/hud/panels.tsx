@@ -3,8 +3,9 @@
 import { useEffect, useLayoutEffect, useRef, type PointerEvent, type ReactNode } from "react";
 import { experiencePins, projectPins, screens, type ScreenId } from "@/content/scene";
 import { resume, spanLabel, type Bullet, type Role } from "@/content/resume";
+import { skillLogos } from "@/app/skill-logos";
 import { audio } from "../audio";
-import { back, copyEmail } from "../actions";
+import { back, copyEmail, selectSkill } from "../actions";
 import { isLandmark, markerCode, pinLabel } from "../marker-meta";
 import { lobby, useLobby } from "../store";
 import {
@@ -169,6 +170,63 @@ function Chips({ items }: { items: string[] }) {
   );
 }
 
+const skillDomId = (skill: string) => `skill-${skill.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+/**
+ * One tile per skill: its logo (or logos) on a dark rounded square, then the
+ * name. Each tile is a button that turns the skill to the front of the globe;
+ * a skill picked on the globe is marked here and scrolled into view.
+ */
+function SkillGrid({ items }: { items: string[] }) {
+  const picked = useLobby((s) => s.skill);
+  const hot = useLobby((s) => s.skillHover);
+  const here = picked !== null && items.includes(picked);
+  useEffect(() => {
+    if (!here || !picked) return;
+    const el = document.getElementById(skillDomId(picked));
+    const box = el?.closest<HTMLElement>(".panel-body");
+    if (!el || !box) return;
+    const r = el.getBoundingClientRect();
+    const b = box.getBoundingClientRect();
+    if (r.top >= b.top && r.bottom <= b.bottom) return;
+    box.scrollTo({
+      top: box.scrollTop + (r.top - b.top) - box.clientHeight / 3,
+      behavior: lobby.get().reducedMotion ? "auto" : "smooth",
+    });
+  }, [here, picked]);
+  return (
+    <ul className="skill-grid">
+      {items.map((skill) => {
+        const logos = skillLogos(skill);
+        const on = skill === picked;
+        return (
+          <li key={skill} className={logos.length > 2 ? "is-wide" : undefined}>
+            <button
+              type="button"
+              id={skillDomId(skill)}
+              className={`skill${on ? " is-on" : ""}${skill === hot && !on ? " is-hot" : ""}`}
+              aria-pressed={on}
+              onPointerEnter={(e) => {
+                hover(e);
+                lobby.set({ skillHover: skill });
+              }}
+              onPointerLeave={() => lobby.get().skillHover === skill && lobby.set({ skillHover: null })}
+              onClick={() => selectSkill(skill)}
+            >
+              <span className={logos.length > 1 ? "skill-tile is-multi" : "skill-tile"} aria-hidden>
+                {logos.map((src) => (
+                  <img key={src} src={src} alt="" width={22} height={22} loading="lazy" decoding="async" />
+                ))}
+              </span>
+              <span className="skill-name">{skill}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 function PinnedOn({ landmark }: { landmark: string | null | undefined }) {
   if (!isLandmark(landmark)) return null;
   return (
@@ -188,12 +246,37 @@ function eyebrowFor(id: ScreenId) {
   return `${String(i + 1).padStart(2, "0")} · ${label}`;
 }
 
+/**
+ * When the panel was opened from a Home readout, bring the quoted bullet into
+ * view inside the panel body (never by scrolling the fixed page).
+ */
+function useProofScroll(ids: string[]) {
+  const proof = useLobby((s) => s.proof);
+  const here = proof !== null && ids.includes(proof);
+  useEffect(() => {
+    if (!here || !proof) return;
+    const raf = requestAnimationFrame(() => {
+      const el = document.getElementById(`bullet-${proof}`);
+      const box = el?.closest<HTMLElement>(".panel-body");
+      if (!el || !box) return;
+      const offset = el.getBoundingClientRect().top - box.getBoundingClientRect().top;
+      box.scrollTo({
+        top: box.scrollTop + offset - box.clientHeight / 4,
+        behavior: lobby.get().reducedMotion ? "auto" : "smooth",
+      });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [here, proof]);
+  return proof;
+}
+
 function BulletList({ bullets }: { bullets: Bullet[] }) {
+  const proof = useProofScroll(bullets.map((b) => b.id));
   if (bullets.length === 0) return null;
   return (
     <ul className="objectives">
       {bullets.map((b) => (
-        <li key={b.id}>
+        <li key={b.id} id={`bullet-${b.id}`} className={b.id === proof ? "is-proof" : undefined}>
           <IconCheck width={15} height={15} />
           <span>{b.text}</span>
         </li>
@@ -218,7 +301,9 @@ function PinnedRole({ role }: { role: Role }) {
   const focus = useLobby((s) => s.focus);
   const pinned = role.bullets.filter((b) => isLandmark(experiencePins[b.id]));
   const rest = role.bullets.filter((b) => !isLandmark(experiencePins[b.id]));
-  const active = pinned.find((b) => b.id === focus) ?? pinned[0];
+  const proof = useProofScroll(pinned.map((b) => b.id));
+  // Opened from a readout on an unpinned bullet: expand nothing until a pick.
+  const active = focus === null && proof ? null : (pinned.find((b) => b.id === focus) ?? pinned[0]);
   return (
     <section className="lb-role" aria-labelledby={`role-${role.id}`}>
       <h3 id={`role-${role.id}`}>{role.org}</h3>
@@ -248,7 +333,11 @@ function PinnedRole({ role }: { role: Role }) {
         </div>
       )}
       {active && (
-        <article className="detail" key={active.id}>
+        <article
+          className={active.id === proof ? "detail is-proof" : "detail"}
+          id={`bullet-${active.id}`}
+          key={active.id}
+        >
           <PinnedOn landmark={experiencePins[active.id]} />
           <h4>{active.label}</h4>
           <p>{active.text}</p>
@@ -295,7 +384,7 @@ function Projects() {
                 lobby.set({ focus: proj.id });
               }}
             >
-              <img src={proj.image} alt="" width={160} height={160} loading="lazy" decoding="async" />
+              <img src={proj.image} alt="" width={proj.imageWidth} height={proj.imageHeight} loading="lazy" decoding="async" />
               <span>{proj.name}</span>
             </button>
           ))}
@@ -306,7 +395,7 @@ function Projects() {
         <article className="detail" key={p.id}>
           <PinnedOn landmark={projectPins[p.id]} />
           <figure className="lb-shot">
-            <img src={p.image} alt={p.alt} width={1024} height={1024} decoding="async" />
+            <img src={p.image} alt={p.alt} width={p.imageWidth} height={p.imageHeight} decoding="async" />
           </figure>
           <h3>{p.name}</h3>
           <p className="sub">
@@ -333,7 +422,7 @@ function Skills() {
               <span className="slot-group">{group.label}</span>
               <span className="slot-count">{group.items.length}</span>
             </header>
-            <Chips items={group.items} />
+            <SkillGrid items={group.items} />
           </section>
         ))}
       </div>

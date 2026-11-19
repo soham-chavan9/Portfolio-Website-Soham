@@ -1,7 +1,8 @@
 # Portfolio redesign: 5-day plan
 
-Status: v2, decisions locked (2026-11-19). Day 1 done; Day 2 is next. Carried to Day 2:
-remove dead lobby CSS for the deleted widgets (squad, ticker, locline, tab-plain, clan, xp).
+Status: v2, decisions locked (2026-11-19). Days 1 and 2 done; Day 3 is next. Home layout
+picked on Day 2: "Telemetry Bar" (a two-tier console bar; each readout opens the bullet it
+quotes). Carried to Day 3: drop the "02 · Experience" eyebrows from the panel heads.
 Owner: Soham Chavan. Build: Claude Code.
 Source of truth: `~/Desktop/Resume/Soham-Chavan-SDE-Resume` (the four variants contain the
 same facts and differ only in ordering; the SDE variant sets the order).
@@ -336,8 +337,8 @@ acceptance check.
 - Purpose: show independent, inspectable work.
 - Content: Lumina and FundFlow only, in resume order. Title, subtitle, dates, the stack line
   verbatim, all bullets (4 and 5), and the GitHub link from the resume.
-- Layout: two large cards, each with the product screenshot (`/lumina.png`,
-  `/fundflow.png`), see Q10.
+- Layout: two large cards, each with the cover image from the project's own repo
+  (`/projects/lumina.jpg`, `/projects/fundflow.jpg`), see Q10.
 - Interaction: each project is pinned to a midtown tower; selecting flies there. "View code
   on GitHub" opens the repo.
 - Acceptance: both repo links work; TaskTreak is gone from data, images, and markup.

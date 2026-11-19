@@ -9,6 +9,12 @@ export type LobbyState = {
   screen: ScreenId;
   /** Selected marker (experience / project / education pin) the camera aims at. */
   focus: string | null;
+  /** Experience bullet a Home readout was opened from; the panel marks it. */
+  proof: string | null;
+  /** Skill picked on the skills globe or in the Skills panel (turned to the front). */
+  skill: string | null;
+  /** Skill under the pointer, on the globe or in the panel; both highlight it. */
+  skillHover: string | null;
   hovered: string | null;
   quality: Quality;
   sound: boolean;
@@ -33,6 +39,9 @@ const initial: LobbyState = {
   phase: "boot",
   screen: "home",
   focus: null,
+  proof: null,
+  skill: null,
+  skillHover: null,
   hovered: null,
   quality: "high",
   sound: false,
@@ -86,6 +95,16 @@ export function useLobby<T>(selector: (s: LobbyState) => T): T {
 
 /** Window-level pointer in -1..1, updated by the lobby (HUD sits over the canvas). */
 export const pointer = { x: 0, y: 0 };
+
+/**
+ * Set while a pointer drag belongs to the skills globe. The camera rig's
+ * listener sits on the canvas and sees the press first, so it checks this on
+ * the next move and lets the globe have the drag.
+ */
+export const grab = { globe: false };
+
+/** Where the skills globe's label goes, in CSS px; written by the 3D scene each frame. */
+export const globeTag = { x: 0, y: 0, on: false, name: "", group: "" };
 
 export function readPref(key: string): string | null {
   if (typeof window === "undefined") return null;

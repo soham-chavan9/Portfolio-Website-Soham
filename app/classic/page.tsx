@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { highlights, resume, spanLabel } from "@/content/resume";
 import { site } from "@/content/site";
+import { skillLogos } from "../skill-logos";
 
 // The plain, printable view. Same data as the lobby, in the resume's own
 // order: header, Education, Skills, Experience, Projects.
@@ -150,7 +151,14 @@ export default function Classic() {
                 <h3>{group.label}</h3>
                 <ul className="chips">
                   {group.items.map((item) => (
-                    <li key={item}>{item}</li>
+                    <li className="chip-skill" key={item}>
+                      <span className="chip-logo" aria-hidden="true">
+                        {skillLogos(item).map((src) => (
+                          <img alt="" decoding="async" height={16} key={src} loading="lazy" src={src} width={16} />
+                        ))}
+                      </span>
+                      {item}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -214,10 +222,10 @@ export default function Classic() {
                     <img
                       alt={project.alt}
                       decoding="async"
-                      height={1024}
+                      height={project.imageHeight}
                       loading="lazy"
                       src={project.image}
-                      width={1024}
+                      width={project.imageWidth}
                     />
                   </div>
                 </article>

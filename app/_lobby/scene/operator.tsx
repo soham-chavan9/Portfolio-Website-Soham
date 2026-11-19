@@ -4,6 +4,7 @@ import { Component, Suspense, useEffect, useMemo, useRef, useState, type ReactNo
 import { useFrame, useLoader, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { failBoot, reportBoot, reportBytes } from "../boot-progress";
 import { lobby, pointer } from "../store";
 
 // The operator: a 3D model of Soham (public/operator/soham.glb), painted by
@@ -29,6 +30,26 @@ import { lobby, pointer } from "../store";
 const MODEL_URL = "/operator/soham.glb";
 const ALBEDO_URL = "/operator/soham-albedo.webp";
 const FACE_URL = "/operator/soham-face.webp";
+
+// The boot checklist reports real loading. The two textures go through their
+// own manager so it can count them, and preloading starts them alongside the
+// model instead of after it.
+const textureManager = new THREE.LoadingManager(
+  undefined,
+  (_url, loaded, total) => reportBoot("textures", loaded / Math.max(total, 2)),
+  () => failBoot("textures"),
+);
+const withTextureManager = (loader: THREE.TextureLoader) => {
+  loader.manager = textureManager;
+};
+useLoader.preload(THREE.TextureLoader, [ALBEDO_URL, FACE_URL], withTextureManager);
+
+// Compressed responses carry no total; then the checklist shows bytes received.
+const onModelProgress = (e: ProgressEvent) => {
+  if (e.lengthComputable && e.total > 0) reportBoot("character", (e.loaded / e.total) * 0.98);
+  else reportBytes("character", e.loaded);
+};
+let modelReported = false;
 const HEIGHT = 1.82;
 /** Model-space width the photo texture spans, centered on the head's axis. */
 const PROJ_WIDTH = 0.3984;
@@ -249,8 +270,12 @@ function breath(t: number) {
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 
 function Model({ position }: { position: [number, number, number] }) {
-  const gltf = useLoader(GLTFLoader, MODEL_URL);
-  const [albedo, face] = useLoader(THREE.TextureLoader, [ALBEDO_URL, FACE_URL]);
+  const gltf = useLoader(GLTFLoader, MODEL_URL, undefined, onModelProgress);
+  if (!modelReported) {
+    modelReported = true;
+    queueMicrotask(() => reportBoot("character", 1));
+  }
+  const [albedo, face] = useLoader(THREE.TextureLoader, [ALBEDO_URL, FACE_URL], withTextureManager);
   const camera = useThree((s) => s.camera);
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
@@ -466,6 +491,10 @@ class ModelBoundary extends Component<{ children: ReactNode }, { failed: boolean
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
+  }
+  componentDidCatch() {
+    failBoot("character");
+    failBoot("textures");
   }
   render() {
     return this.state.failed ? null : this.props.children;

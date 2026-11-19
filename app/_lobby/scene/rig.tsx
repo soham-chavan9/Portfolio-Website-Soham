@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { ScreenId } from "@/content/scene";
-import { lobby, pointer, type Phase } from "../store";
+import { grab, lobby, pointer, type Phase } from "../store";
 import { landmarkTop } from "./geo";
+import { GLOBE_CENTER } from "./skills-globe";
 import { frameMarker, markerById, markers } from "./targets";
 
 type Shot = { pos: THREE.Vector3; look: THREE.Vector3; fov: number };
@@ -27,7 +28,8 @@ const AUTHORED: Record<ScreenId, Shot> = {
   experience: { pos: V(-2.15, 1.52, -1.75), look: V(...landmarkTop("oneWtc")).add(V(0, -30, 0)), fov: 26 },
   projects: { pos: V(-1.0, 1.62, -2.1), look: midtown(), fov: 22 },
   // Skills and Contact sit in front of the operator's fixed three-quarter stance.
-  skills: { pos: V(0.87, 1.3, 0.59), look: V(-0.55, 1.02, -2.5), fov: 36 },
+  // On Skills the shot widens to take in the hologram globe at his side.
+  skills: { pos: V(1.05, 1.42, 1.05), look: V(-0.08, 1.12, -2.72), fov: 38 },
   education: { pos: V(5.4, 2.05, 3.3), look: V(-2.6, 1.1, -5.5), fov: 46 },
   contact: { pos: V(1.21, 1.55, -0.45), look: V(-0.55, 1.28, -2.5), fov: 34 },
 };
@@ -103,7 +105,7 @@ const INTRO = new THREE.CatmullRomCurve3([
   V(3.3, 1.95, -0.8),
   SHOTS.home.pos.clone(),
 ]);
-const INTRO_SECONDS = 5.6;
+const INTRO_SECONDS = 3.4;
 
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
@@ -141,6 +143,12 @@ function restingShot(
       // Portrait: you on the left, downtown on the right, skyline above the controls.
       outPos.set(-0.2, 1.55, aspect < 0.8 ? 3.0 : 3.2);
       outLook.set(aspect < 0.8 ? 1.25 : 0.9, aspect < 0.8 ? 0.6 : 0.95, -8);
+    } else if (screen === "skills" && aspect < 1) {
+      // Portrait: the skills sheet covers the lower half, so frame the
+      // hologram globe in the space above it rather than the operator.
+      outLook.copy(GLOBE_CENTER);
+      outLook.y += 0.12;
+      outPos.set(1.25, 1.62, 0.65);
     }
   }
   return fov;
@@ -229,6 +237,10 @@ export default function CameraRig() {
     };
     const move = (e: PointerEvent) => {
       if (!c.dragging || e.pointerId !== c.pointerId) return;
+      if (grab.globe) {
+        c.dragging = false;
+        return;
+      }
       c.orbit = THREE.MathUtils.clamp(c.orbit - (e.clientX - c.lastX) * 0.004, -0.7, 0.7);
       c.orbitPitch = THREE.MathUtils.clamp(c.orbitPitch + (e.clientY - c.lastY) * 0.002, -0.15, 0.25);
       c.lastX = e.clientX;

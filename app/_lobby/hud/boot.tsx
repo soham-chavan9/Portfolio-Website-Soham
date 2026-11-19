@@ -2,15 +2,25 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { bootLines, tips } from "@/content/scene";
 import { resume } from "@/content/resume";
 import { setSound, skipIntro, start } from "../actions";
+import { getBoot, isSettled, reportBoot, useBoot, type BootTask, type TaskState } from "../boot-progress";
 import { lobby, useLobby } from "../store";
-import { Emblem, IconMute, IconSound } from "./icons";
+import { IconMute, IconSound } from "./icons";
 
-const MIN_BOOT_MS = 1900;
-/** After this long without a ready scene, offer the plain page. */
+/** Shortest the checklist stays up, so a cached load doesn't flash. */
+const MIN_BOOT_MS = 800;
+/** After this long without a finished load, offer the plain page. */
 const SLOW_BOOT_MS = 9000;
+/** The scene is up but an asset is still out: enter anyway; it appears when it lands. */
+const GIVE_UP_MS = 15000;
+
+const CHECKS: { id: BootTask; label: string }[] = [
+  { id: "scene", label: "Scene" },
+  { id: "character", label: "Character" },
+  { id: "textures", label: "Textures" },
+  { id: "fonts", label: "Fonts" },
+];
 
 /** Keys that should never count as "press any key" (and keep their default). */
 const PASSIVE_KEYS = new Set([
@@ -32,47 +42,53 @@ const PASSIVE_KEYS = new Set([
   "AudioVolumeMute",
 ]);
 
+function readout(t: TaskState, state: "off" | "done" | "loading") {
+  if (state === "off") return "Off";
+  if (state === "loading" && t.progress === 0 && t.bytes) return `${(t.bytes / 1e6).toFixed(1)} MB`;
+  return `${Math.round(t.progress * 100)}%`;
+}
+
 export function BootScreen() {
   const phase = useLobby((s) => s.phase);
-  const ready = useLobby((s) => s.sceneReady);
-  const [progress, setProgress] = useState(0);
-  const [line, setLine] = useState(0);
-  const [tip, setTip] = useState(0);
+  const boot = useBoot();
   const [slow, setSlow] = useState(false);
 
-  // Random tip after hydration so server and client markup agree.
+  // Fonts: the browser's own font set says when every face in use has loaded.
   useEffect(() => {
-    if (tips.length > 1) setTip(Math.floor(Math.random() * tips.length));
+    const fonts = typeof document !== "undefined" ? document.fonts : undefined;
+    if (!fonts) {
+      reportBoot("fonts", 1);
+      return;
+    }
+    fonts.ready.then(
+      () => reportBoot("fonts", 1),
+      () => reportBoot("fonts", 1),
+    );
   }, []);
 
   useEffect(() => {
     if (phase !== "boot") return;
     const startedAt = performance.now();
-    let p = 0;
     let handoff = 0;
     const slowId = window.setTimeout(() => setSlow(true), SLOW_BOOT_MS);
     const id = window.setInterval(() => {
       const elapsed = performance.now() - startedAt;
-      const isReady = lobby.get().sceneReady;
-      const target = isReady ? 1 : Math.min(0.88, elapsed / 3200);
-      p += (target - p) * (isReady ? 0.2 : 0.08);
-      setProgress(p);
-      setLine(Math.min(Math.max(0, bootLines.length - 1), Math.floor(elapsed / 520)));
-      if (isReady && elapsed > MIN_BOOT_MS) {
-        window.clearInterval(id);
-        // Fill the bar before handing off, instead of cutting away mid-way.
-        setProgress(1);
-        handoff = window.setTimeout(() => {
-          let returning = false;
-          try {
-            returning = window.sessionStorage.getItem("lobby:started") === "1";
-          } catch {
-            /* fine */
-          }
-          lobby.set({ phase: returning ? "lobby" : "title" });
-        }, 240);
-      }
-    }, 50);
+      const s = getBoot();
+      const done = CHECKS.every((c) => isSettled(s[c.id]));
+      const stuck = lobby.get().sceneReady && elapsed > GIVE_UP_MS;
+      if (!(done && elapsed >= MIN_BOOT_MS) && !stuck) return;
+      window.clearInterval(id);
+      // A beat on the finished list before cutting away.
+      handoff = window.setTimeout(() => {
+        let returning = false;
+        try {
+          returning = window.sessionStorage.getItem("lobby:started") === "1";
+        } catch {
+          /* fine */
+        }
+        lobby.set({ phase: returning ? "lobby" : "title" });
+      }, 240);
+    }, 100);
     return () => {
       window.clearInterval(id);
       window.clearTimeout(slowId);
@@ -81,12 +97,26 @@ export function BootScreen() {
   }, [phase]);
 
   if (phase !== "boot") return null;
-  const pct = Math.round(progress * 100);
+  const done = CHECKS.every((c) => isSettled(boot[c.id]));
+  const overall = CHECKS.reduce((sum, c) => sum + (boot[c.id].failed ? 1 : boot[c.id].progress), 0) / CHECKS.length;
+  const pct = Math.round(overall * 100);
   return (
-    <div className="boot" aria-busy={!ready}>
+    <div className="boot" aria-busy={!done}>
       <div className="boot-center">
-        <Emblem className="boot-emblem" />
         <p className="boot-name">{resume.name}</p>
+        <ul className="boot-checks" aria-label="Loading checklist">
+          {CHECKS.map((c) => {
+            const t = boot[c.id];
+            const state = t.failed ? "off" : t.progress >= 1 ? "done" : "loading";
+            return (
+              <li key={c.id} className={`boot-check is-${state}`}>
+                <i className="boot-light" aria-hidden />
+                <span className="boot-label">{c.label}</span>
+                <b className="boot-pct">{readout(t, state)}</b>
+              </li>
+            );
+          })}
+        </ul>
         <div
           className="boot-bar"
           role="progressbar"
@@ -95,27 +125,17 @@ export function BootScreen() {
           aria-valuemax={100}
           aria-valuenow={pct}
         >
-          <span style={{ transform: `scaleX(${progress})` }} />
+          <span style={{ transform: `scaleX(${overall})` }} />
         </div>
-        <p className="boot-line" aria-hidden>
-          <span>{ready ? "Ready" : (bootLines[line] ?? "Loading")}</span>
-          <b>{pct}%</b>
-        </p>
         <p className="sr-only" role="status">
-          {ready ? "Lobby ready" : "Loading the 3D lobby"}
+          {done ? "Lobby ready" : "Loading the 3D lobby"}
         </p>
-        {slow && !ready && (
+        {slow && !done && (
           <p className="boot-slow">
-            Taking a while? <Link href="/classic">Open the classic page</Link>
+            Taking a while? <Link href="/classic">Open the classic view</Link>
           </p>
         )}
       </div>
-      {tips[tip] && (
-        <p className="boot-tip">
-          <span>Tip</span>
-          {tips[tip]}
-        </p>
-      )}
     </div>
   );
 }
@@ -147,13 +167,13 @@ export function TitleScreen() {
   if (phase !== "title") return null;
   return (
     <div className="title" onClick={() => start()}>
-      {/* Keeps the title grid's first row; the location line that lived here was removed. */}
-      <div className="title-top" aria-hidden />
       <div className="title-main">
-        <p className="title-kicker">Portfolio</p>
         <h1 className="title-name">{resume.name}</h1>
         <p className="title-role">
-          {resume.headline} · {resume.location}
+          {resume.headline}
+          <span aria-hidden> · </span>
+          <span className="sr-only">, </span>
+          {resume.location}
         </p>
         <button
           type="button"
@@ -180,7 +200,6 @@ export function TitleScreen() {
         <Link data-title-control className="title-chip" href="/classic">
           Classic view
         </Link>
-        <span className="title-legal">Built with three.js · every sound is synthesized live</span>
       </div>
     </div>
   );
@@ -197,7 +216,7 @@ export function IntroOverlay() {
     const id = window.setTimeout(() => {
       window.addEventListener("keydown", skip);
       window.addEventListener("pointerdown", skip);
-    }, 400);
+    }, 300);
     return () => {
       window.clearTimeout(id);
       window.removeEventListener("keydown", skip);

@@ -101,16 +101,3 @@ export const educationPins: Record<string, number> = {
   mumbai: -8,
 };
 
-export const bootLines = [
-  "Loading the skyline",
-  "Lighting the windows",
-  "Calibrating reflections",
-  "Loading the character",
-];
-
-export const tips = [
-  "Press Q and E to switch tabs, Esc to come back home.",
-  "Click the character, or press G, to wave.",
-  "Prefer a plain page? Open the classic view.",
-  "Work on the Experience tab is pinned to real towers.",
-];

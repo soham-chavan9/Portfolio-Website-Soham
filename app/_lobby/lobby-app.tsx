@@ -5,12 +5,22 @@ import { useEffect } from "react";
 import { screens, type ScreenId } from "@/content/scene";
 import { audio } from "./audio";
 import { back, cycle, deploy, emote, go, setSound } from "./actions";
+import { reportBoot } from "./boot-progress";
 import { BootScreen, IntroOverlay, TitleScreen } from "./hud/boot";
 import Hud from "./hud/hud";
 import { lobby, pointer, readPref, useLobby } from "./store";
 import "./lobby.css";
 
-const Scene = dynamic(() => import("./scene/scene"), { ssr: false });
+// The boot checklist counts the 3D code arriving as half of "Scene"; the
+// other half is the first frames on screen (scene.tsx, ReadyProbe).
+const Scene = dynamic(
+  () =>
+    import("./scene/scene").then((m) => {
+      reportBoot("scene", 0.5);
+      return m;
+    }),
+  { ssr: false },
+);
 
 function hashScreen(): ScreenId | null {
   const h = window.location.hash.replace("#", "");

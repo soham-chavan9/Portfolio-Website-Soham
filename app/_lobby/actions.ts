@@ -1,5 +1,6 @@
 import { experiencePins, projectPins, screens, type ScreenId } from "@/content/scene";
 import { audio } from "./audio";
+import { isLandmark } from "./marker-meta";
 import { lobby, writePref } from "./store";
 
 // Everything the HUD, the keyboard and the 3D markers can ask the lobby to do.
@@ -29,9 +30,18 @@ export function go(screen: ScreenId) {
   lobby.set({
     screen,
     focus: DEFAULT_FOCUS[screen] ?? null,
+    proof: null,
+    skill: null,
+    skillHover: null,
     settings: false,
   });
   syncHash(screen);
+}
+
+/** Pick a skill (globe or panel): the globe turns it to the front. Again to let go. */
+export function selectSkill(name: string) {
+  audio.click();
+  lobby.set((s) => ({ skill: s.skill === name ? null : name }));
 }
 
 export function cycle(dir: 1 | -1) {
@@ -54,7 +64,24 @@ export function back() {
 /** The Home screen's primary action: open Experience. */
 export function deploy() {
   audio.deploy();
-  lobby.set({ screen: "experience", focus: DEFAULT_FOCUS.experience ?? null, settings: false });
+  lobby.set({ screen: "experience", focus: DEFAULT_FOCUS.experience ?? null, proof: null, settings: false });
+  syncHash("experience");
+}
+
+/**
+ * A Home readout's action: open Experience on the bullet the number is quoted
+ * from. A bullet pinned on a tower also takes the camera there; an unpinned one
+ * leaves the camera on the overview, so nothing else claims the emphasis.
+ */
+export function showProof(bulletId: string) {
+  audio.deploy();
+  const pinned = isLandmark(experiencePins[bulletId]);
+  lobby.set({
+    screen: "experience",
+    focus: pinned ? bulletId : null,
+    proof: bulletId,
+    settings: false,
+  });
   syncHash("experience");
 }
 

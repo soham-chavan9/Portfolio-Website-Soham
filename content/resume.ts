@@ -44,8 +44,10 @@ export type Project = {
   span: Span;
   stack: string[];
   bullets: Bullet[];
-  /** Product screenshot (an image, not a claim). */
+  /** Cover image from the project's own repo (an image, not a claim). */
   image: string;
+  imageWidth: number;
+  imageHeight: number;
   alt: string;
 };
 
@@ -326,8 +328,11 @@ export const resume: Resume = {
           highlight: { value: "82%", label: "coverage" },
         },
       ],
-      image: "/lumina.png",
-      alt: "Lumina, a HIPAA privacy assistant, showing a cited answer",
+      // From the repo: docs/linkedin-thumbnails/01-cover.jpg
+      image: "/projects/lumina.jpg",
+      imageWidth: 1600,
+      imageHeight: 836,
+      alt: "Lumina cover: a cited answer on breach notification beside breach-clock, PHI-scan, patient-access and BAA-screen cards",
     },
     {
       id: "fundflow",
@@ -377,8 +382,11 @@ export const resume: Resume = {
           highlight: { value: "121", label: "Vitest unit tests" },
         },
       ],
-      image: "/fundflow.png",
-      alt: "FundFlow spending dashboard",
+      // From the repo: docs/screenshots/mac-iphone-1920x1080/fundflow-01-overview.jpg
+      image: "/projects/fundflow.jpg",
+      imageWidth: 1600,
+      imageHeight: 900,
+      alt: "FundFlow overview on a laptop and a phone: spent, budgeted and left for the month, with budgets by category",
     },
   ],
 };
@@ -386,13 +394,25 @@ export const resume: Resume = {
 /** "Sep 2024 – Dec 2026" */
 export const spanLabel = (s: Span) => `${s.start} – ${s.end}`;
 
-/** Home-screen readouts, every value verbatim from a resume bullet. */
-export const highlights: Highlight[] = [
-  { value: "1,000+", label: "app downloads" },
-  { value: "~2 hours", label: "small-fix delivery, from ~48 hours" },
-  { value: "0", label: "store rejections" },
-  { value: "10,000+", label: "daily active users" },
+/** A Home readout: a number quoted from one bullet, plus that bullet's id. */
+export type Readout = Highlight & { source: string };
+
+/** Home-screen readouts, every value verbatim from the bullet named in `source`. */
+export const highlights: Readout[] = [
+  { value: "1,000+", label: "app downloads", source: "of-ownership" },
+  { value: "~2 hours", label: "small-fix delivery, from ~48 hours", source: "of-updates" },
+  { value: "0", label: "store rejections", source: "of-releases" },
+  { value: "10,000+", label: "daily active users", source: "acn-apis" },
 ];
+
+/** The role and bullet an experience bullet id belongs to. */
+export function bulletSource(id: string): { role: Role; bullet: Bullet } | null {
+  for (const role of resume.experience) {
+    const bullet = role.bullets.find((b) => b.id === id);
+    if (bullet) return { role, bullet };
+  }
+  return null;
+}
 
 export const currentRole = resume.experience[0];
 export const currentSchool = resume.education[0];

@@ -144,27 +144,3 @@ export const TabGlyph = ({ id, ...p }: P & { id: string }) => {
       );
   }
 };
-
-export const Emblem = (p: P) => (
-  <svg viewBox="0 0 64 64" width={64} height={64} aria-hidden {...p}>
-    <defs>
-      <linearGradient id="emb" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#ffd27a" />
-        <stop offset="1" stopColor="#ff9a1f" />
-      </linearGradient>
-    </defs>
-    <path d="M32 3 57 17.5v29L32 61 7 46.5v-29z" fill="none" stroke="url(#emb)" strokeWidth="2.5" />
-    <path d="M32 11 50 21.5v21L32 53 14 42.5v-21z" fill="rgba(255,178,63,0.08)" stroke="rgba(255,210,122,0.35)" strokeWidth="1" />
-    <text x="32" y="39" textAnchor="middle" fontFamily="var(--font-display), sans-serif" fontWeight="800" fontSize="20" fill="url(#emb)" letterSpacing="1">
-      SC
-    </text>
-  </svg>
-);
-
-export const RankChevrons = (p: P) => (
-  <svg viewBox="0 0 24 24" width={22} height={22} aria-hidden {...p}>
-    <path d="m4 9 8-5 8 5v3l-8-5-8 5z" fill="#ffb23f" />
-    <path d="m4 15 8-5 8 5v3l-8-5-8 5z" fill="#ffb23f" opacity="0.75" />
-    <path d="m4 21 8-5 8 5" fill="none" stroke="#ffb23f" strokeWidth="2" opacity="0.5" />
-  </svg>
-);

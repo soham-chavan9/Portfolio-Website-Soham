@@ -23,11 +23,13 @@ import {
 } from "@react-three/postprocessing";
 import { BlendFunction, ToneMappingMode } from "postprocessing";
 import * as THREE from "three";
+import { failBoot, reportBoot } from "../boot-progress";
 import { lobby, readPref, useLobby, type Quality } from "../store";
 import Balcony from "./balcony";
 import City from "./city";
 import { Sky, Water } from "./environment";
 import Markers from "./markers";
+import SkillsGlobe from "./skills-globe";
 import Operator from "./operator";
 import CameraRig from "./rig";
 import Traffic from "./traffic";
@@ -153,7 +155,10 @@ function ReadyProbe() {
   useFrame(() => {
     if (frames.current > 4) return;
     frames.current++;
-    if (frames.current === 4) lobby.set({ sceneReady: true });
+    if (frames.current === 4) {
+      reportBoot("scene", 1);
+      lobby.set({ sceneReady: true });
+    }
   });
   return null;
 }
@@ -290,6 +295,7 @@ const World = memo(function World({ quality }: { quality: Quality }) {
       <group ref={near}>
         <Balcony />
         <Operator position={OPERATOR_POSITION} />
+        <SkillsGlobe />
       </group>
       <Markers />
       <CameraRig />
@@ -301,6 +307,9 @@ const World = memo(function World({ quality }: { quality: Quality }) {
 
 function Fallback() {
   useEffect(() => {
+    failBoot("scene");
+    failBoot("character");
+    failBoot("textures");
     lobby.set({ sceneReady: true });
   }, []);
   return (
