@@ -1,18 +1,17 @@
-import { screens, type ScreenId } from "@/content/lobby";
-import { featuredWork } from "@/content/portfolio";
+import { experiencePins, projectPins, screens, type ScreenId } from "@/content/scene";
 import { audio } from "./audio";
 import { lobby, writePref } from "./store";
 
 // Everything the HUD, the keyboard and the 3D markers can ask the lobby to do.
 
 const DEFAULT_FOCUS: Partial<Record<ScreenId, string>> = {
-  missions: featuredWork.systems[0]?.id,
-  arsenal: "p0",
+  experience: Object.keys(experiencePins)[0],
+  projects: Object.keys(projectPins)[0],
 };
 
 function syncHash(screen: ScreenId) {
   try {
-    const url = screen === "lobby" ? window.location.pathname : `#${screen}`;
+    const url = screen === "home" ? window.location.pathname : `#${screen}`;
     window.history.replaceState(null, "", url);
   } catch {
     /* sandboxed iframes can refuse history access */
@@ -21,16 +20,15 @@ function syncHash(screen: ScreenId) {
 
 export function go(screen: ScreenId) {
   const s = lobby.get();
-  if (s.screen === screen && !s.comms) {
+  if (s.screen === screen) {
     if (s.settings) lobby.set({ settings: false });
     return;
   }
-  if (screen === "lobby") audio.back();
+  if (screen === "home") audio.back();
   else audio.swoosh();
   lobby.set({
     screen,
     focus: DEFAULT_FOCUS[screen] ?? null,
-    comms: false,
     settings: false,
   });
   syncHash(screen);
@@ -50,23 +48,18 @@ export function back() {
     lobby.set({ settings: false });
     return;
   }
-  if (s.comms) {
-    audio.back();
-    lobby.set({ comms: false });
-    return;
-  }
-  if (s.screen !== "lobby") go("lobby");
+  if (s.screen !== "home") go("home");
 }
 
+/** The Home screen's primary action: open Experience. */
 export function deploy() {
   audio.deploy();
-  lobby.set({ screen: "missions", focus: DEFAULT_FOCUS.missions ?? null, comms: false, settings: false });
-  syncHash("missions");
+  lobby.set({ screen: "experience", focus: DEFAULT_FOCUS.experience ?? null, settings: false });
+  syncHash("experience");
 }
 
-export function openComms() {
-  audio.click();
-  lobby.set({ comms: true, settings: false });
+export function openContact() {
+  go("contact");
 }
 
 export function toggleSettings(open = !lobby.get().settings) {

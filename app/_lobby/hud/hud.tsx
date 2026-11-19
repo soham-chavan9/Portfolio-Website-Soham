@@ -2,26 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import {
-  degreeProgress,
-  landmarks,
-  operatorAvatar,
-  rangeLabel,
-  screens,
-  ticker,
-  viewpoint,
-} from "@/content/lobby";
-import { featuredWork } from "@/content/portfolio";
-import { writeups } from "@/content/writeups";
-import { site } from "@/content/site";
+import { landmarks, operatorAvatar, rangeLabel, screens } from "@/content/scene";
+import { currentRole, currentSchool, highlights, resume, spanLabel } from "@/content/resume";
 import { audio } from "../audio";
 import {
   cycle,
   deploy,
   emote,
   go,
-  openComms,
-  rememberScreen,
+  openContact,
   setMusic,
   setQuality,
   setReducedMotion,
@@ -30,10 +19,8 @@ import {
 } from "../actions";
 import { focusLandmark, markerMeta, markerScreen } from "../marker-meta";
 import { lobby, useLobby } from "../store";
-import { useNycClock } from "./boot";
 import {
   IconArrow,
-  IconDownload,
   IconExpand,
   IconGear,
   IconGithub,
@@ -42,25 +29,11 @@ import {
   IconMute,
   IconSound,
   IconWave,
-  RankChevrons,
   TabGlyph,
 } from "./icons";
-import {
-  BackButton,
-  CommsPanel,
-  ScreenPanel,
-  commendations,
-  hasPanel,
-  hover,
-  initialsOf,
-  restoreFocus,
-  trackOpeners,
-} from "./panels";
+import { BackButton, ScreenPanel, hasPanel, hover, restoreFocus, trackOpeners } from "./panels";
 
 function PlayerCard() {
-  const [xp, setXp] = useState(0);
-  // Date-dependent, so computed after hydration.
-  useEffect(() => setXp(degreeProgress()), []);
   return (
     <div
       className="player"
@@ -71,29 +44,23 @@ function PlayerCard() {
         type="button"
         className="player-avatar"
         data-opener="avatar"
-        onClick={() => go("intel")}
+        onClick={() => go("contact")}
         onPointerEnter={hover}
-        aria-label={`Open Intel: about ${site.name}`}
+        aria-label={`Contact ${resume.name}`}
       >
         <img src={operatorAvatar} alt="" width={128} height={128} decoding="async" />
       </button>
       <div className="player-info">
-        <p className="player-name">
-          <span className="clan">[NEU]</span> {site.name}
-        </p>
+        <p className="player-name">{resume.name}</p>
         <p className="player-rank">
-          <RankChevrons width={16} height={16} />
-          <span className="rank-long">{site.navHeadline}</span>
-          <span className="rank-short">{site.roles[0] ?? site.navHeadline}</span>
-        </p>
-        <div className="xp" title={`M.S. Information Systems, ${Math.round(xp * 100)}% complete`}>
-          <div className="xp-bar" aria-hidden>
-            <span style={{ transform: `scaleX(${xp})` }} />
-          </div>
-          <span className="xp-label">
-            M.S. Northeastern <b>{Math.round(xp * 100)}%</b>
+          <span className="rank-long">
+            {resume.headline} · {resume.location}
           </span>
-        </div>
+          <span className="rank-short">{resume.headline}</span>
+        </p>
+        <p className="xp-label">
+          {currentSchool.degree}, {currentSchool.school.split(" ")[0]} · {currentSchool.span.end}
+        </p>
       </div>
     </div>
   );
@@ -119,9 +86,8 @@ function tabKeys(prefix: "lb-tab" | "lb-mtab") {
 
 function Tabs() {
   const screen = useLobby((s) => s.screen);
-  const comms = useLobby((s) => s.comms);
   return (
-    <nav className="lb-tabs" aria-label="Lobby">
+    <nav className="lb-tabs" aria-label="Sections">
       <button type="button" className="kbd-btn" onClick={() => cycle(-1)} aria-label="Previous screen (Q)" onPointerEnter={hover}>
         <kbd aria-hidden>Q</kbd>
       </button>
@@ -134,16 +100,15 @@ function Tabs() {
               id={`lb-tab-${s.id}`}
               type="button"
               role="tab"
-              className={`lb-tab${selected && !comms ? " is-active" : ""}`}
+              className={`lb-tab${selected ? " is-active" : ""}`}
               aria-selected={selected}
-              aria-controls={selected && !comms && hasPanel(s.id) ? `lb-panel-${s.id}` : undefined}
+              aria-controls={selected && hasPanel(s.id) ? `lb-panel-${s.id}` : undefined}
               tabIndex={selected ? 0 : -1}
               data-opener={`tab-${s.id}`}
               onPointerEnter={hover}
               onClick={() => go(s.id)}
             >
               <span className="tab-label">{s.label}</span>
-              <span className="tab-plain">{s.plain}</span>
             </button>
           );
         })}
@@ -171,17 +136,6 @@ function Meta() {
 
   return (
     <div className="lb-meta">
-      {site.stats.length > 0 && (
-        <ul className="lb-stats" aria-label="Highlights">
-          {site.stats.map((st) => (
-            <li key={st.label} title={st.label}>
-              <b>{st.value}</b>
-              <span aria-hidden>{st.label.split(" ").slice(0, 2).join(" ")}</span>
-              <span className="sr-only">{st.label}</span>
-            </li>
-          ))}
-        </ul>
-      )}
       <div className="meta-btns">
         <button
           type="button"
@@ -312,167 +266,82 @@ function Settings() {
   return open ? <SettingsDialog /> : null;
 }
 
-function Banners() {
+function Brief() {
   return (
-    <aside className="banners" aria-label="Recruiter brief">
+    <aside className="banners" aria-label="Highlights">
       <div className="banner banner-brief">
         <span className="banner-kicker">
-          <i className="live" aria-hidden /> Open for recruitment
+          <i className="live" aria-hidden /> Highlights
         </span>
-        <b>{site.status}</b>
-        {site.stats.length > 0 && (
-          <dl className="brief-stats">
-            {site.stats.map((s) => (
-              <div key={s.label} title={`${s.value} ${s.label}`}>
-                <dt>{s.short ?? s.label}</dt>
-                <dd>{s.value}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
+        <dl className="brief-stats">
+          {highlights.map((h) => (
+            <div key={h.label} title={`${h.value} ${h.label}`}>
+              <dt>{h.label}</dt>
+              <dd>{h.value}</dd>
+            </div>
+          ))}
+        </dl>
         <div className="brief-cta">
-          {site.resumeHref && (
-            <a className="brief-primary" href={site.resumeHref} download onPointerEnter={hover} onClick={() => audio.chime()}>
-              <IconDownload width={15} height={15} /> Résumé
-            </a>
-          )}
-          <button
-            type="button"
-            className={site.resumeHref ? "brief-secondary" : "brief-primary"}
-            data-opener="banner-comms"
-            onPointerEnter={hover}
-            onClick={openComms}
-          >
+          <button type="button" className="brief-primary" data-opener="brief-contact" onPointerEnter={hover} onClick={openContact}>
             Contact <IconArrow width={14} height={14} />
           </button>
         </div>
       </div>
-      {writeups.length > 0 && (
-        <div className="banner banner-reports">
-          <span className="banner-kicker">Field reports · {writeups.length} new</span>
-          <ul className="reports">
-            {writeups.map((w) => (
-              <li key={w.slug}>
-                <Link href={`/work/${w.slug}`} onClick={rememberScreen} onPointerEnter={hover}>
-                  {w.title}
-                  <IconArrow width={14} height={14} />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </aside>
   );
 }
 
 function ModeCard() {
-  const role = featuredWork.facts.find((f) => f.label === "Role")?.value;
-  const when = featuredWork.facts.find((f) => f.label === "Timeline")?.value;
   return (
-    <aside className="mode" aria-label="Featured operation">
+    <aside className="mode" aria-label="Most recent role">
       <div className="mode-card">
-        <p className="mode-kicker">Featured operation</p>
-        <p className="mode-title">{featuredWork.title}</p>
-        {featuredWork.tagline && <p className="mode-meta">{featuredWork.tagline}</p>}
+        <p className="mode-kicker">Most recent role</p>
+        <p className="mode-title">{currentRole.org}</p>
+        <p className="mode-meta">{currentRole.title}</p>
         <p className="mode-target">
-          {[role, `${featuredWork.systems.length} shipped systems`, when].filter(Boolean).join(" · ")}
+          {currentRole.location} · {spanLabel(currentRole.span)}
         </p>
       </div>
       <button
         type="button"
         className="deploy"
         data-opener="deploy"
-        aria-label="Deploy: open Missions, the featured work"
+        aria-label="Open Experience"
         onPointerEnter={hover}
         onClick={deploy}
       >
-        <span>Deploy</span>
+        <span>Experience</span>
         <small className="deploy-sub" aria-hidden>
-          View featured work
+          View work history
         </small>
         <kbd className="kbd-hint" aria-hidden>
           Enter
         </kbd>
       </button>
       <div className="mode-alt">
-        <button type="button" data-opener="alt-arsenal" onPointerEnter={hover} onClick={() => go("arsenal")}>
-          Arsenal
+        <button type="button" data-opener="alt-projects" onPointerEnter={hover} onClick={() => go("projects")}>
+          Projects
         </button>
-        <button type="button" data-opener="alt-career" onPointerEnter={hover} onClick={() => go("career")}>
-          Career
+        <button type="button" data-opener="alt-skills" onPointerEnter={hover} onClick={() => go("skills")}>
+          Skills
         </button>
-        {site.resumeHref && (
-          <a className="show-mobile" href={site.resumeHref} download onClick={() => audio.chime()}>
-            Résumé
-          </a>
-        )}
-        <button type="button" className="show-mobile" data-opener="alt-comms" onClick={openComms}>
-          Comms
+        <button type="button" className="show-mobile" data-opener="alt-contact" onClick={openContact}>
+          Contact
         </button>
       </div>
     </aside>
   );
 }
 
-/** Commendations at a glance; renders nothing when there are none. */
-function Squad() {
-  const n = commendations.length;
-  if (n === 0) return null;
-  return (
-    <button type="button" className="squad" data-opener="squad" onPointerEnter={hover} onClick={() => go("career")}>
-      <span className="squad-kicker">
-        Squad · {n} {n === 1 ? "commendation" : "commendations"}
-      </span>
-      <span className="squad-row">
-        {commendations.map((t) => (
-          <span key={t.name} className="squad-member">
-            <span className="lb-avatar" aria-hidden>
-              {initialsOf(t)}
-            </span>
-            <span>
-              <b>{t.name}</b>
-              <small>{t.role}</small>
-            </span>
-          </span>
-        ))}
-      </span>
-    </button>
-  );
-}
-
-function Ticker() {
-  const time = useNycClock();
-  return (
-    <div className="ticker-wrap">
-      <p className="locline">
-        <i className="live" aria-hidden />
-        {viewpoint.name} · {viewpoint.lat.toFixed(4)}° N {Math.abs(viewpoint.lon).toFixed(4)}° W
-        {time && <> · {time} ET</>}
-      </p>
-      {ticker.length > 0 && (
-        // Decorative marquee; the same facts live in Intel and Comms.
-        <div className="ticker" aria-hidden>
-          <div className="ticker-track">
-            {[...ticker, ...ticker].map((t, i) => (
-              <span key={i}>{t}</span>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CommsDock() {
+function Dock() {
   const touch = useLobby((s) => s.touch);
   return (
     <div className="dock">
       {!touch && (
         <p className="hints" aria-hidden>
           <span><kbd>Q</kbd><kbd>E</kbd> Tabs</span>
-          <span><kbd>G</kbd> Emote</span>
-          <span><kbd>M</kbd> Mute</span>
+          <span><kbd>C</kbd> Contact</span>
+          <span><kbd>G</kbd> Wave</span>
           <span>Drag to look</span>
         </p>
       )}
@@ -480,14 +349,14 @@ function CommsDock() {
         <button type="button" className="icon-btn" onPointerEnter={hover} onClick={emote} aria-label="Emote: wave (G)">
           <IconWave />
         </button>
-        <a className="icon-btn" href={site.github} target="_blank" rel="noreferrer" onPointerEnter={hover} aria-label="GitHub (opens in a new tab)">
+        <a className="icon-btn" href={resume.github} target="_blank" rel="noreferrer" onPointerEnter={hover} aria-label="GitHub (opens in a new tab)">
           <IconGithub />
         </a>
-        <a className="icon-btn" href={site.linkedin} target="_blank" rel="noreferrer" onPointerEnter={hover} aria-label="LinkedIn (opens in a new tab)">
+        <a className="icon-btn" href={resume.linkedin} target="_blank" rel="noreferrer" onPointerEnter={hover} aria-label="LinkedIn (opens in a new tab)">
           <IconLinkedin />
         </a>
-        <button type="button" className="comms-btn" data-opener="dock-comms" onPointerEnter={hover} onClick={openComms}>
-          <IconMail /> Comms
+        <button type="button" className="comms-btn" data-opener="dock-contact" onPointerEnter={hover} onClick={openContact}>
+          <IconMail /> Contact
         </button>
       </div>
     </div>
@@ -498,8 +367,7 @@ function Scope() {
   const screen = useLobby((s) => s.screen);
   const focus = useLobby((s) => s.focus);
   const inset = useLobby((s) => s.panelInset);
-  const comms = useLobby((s) => s.comms);
-  if (comms || (screen !== "missions" && screen !== "arsenal")) return null;
+  if (screen !== "experience" && screen !== "projects") return null;
   const landmark = focusLandmark(screen, focus);
   if (!landmark) return null;
   return (
@@ -525,10 +393,9 @@ function Scope() {
 function MarkerLabels() {
   const screen = useLobby((s) => s.screen);
   const focus = useLobby((s) => s.focus);
-  const comms = useLobby((s) => s.comms);
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const list = markerMeta.filter((m) => m.screen === screen);
-  const live = !comms && list.length > 0;
+  const live = list.length > 0;
 
   useEffect(() => {
     if (!live) return;
@@ -581,9 +448,8 @@ function MarkerLabels() {
 
 function MobileNav() {
   const screen = useLobby((s) => s.screen);
-  const comms = useLobby((s) => s.comms);
   return (
-    <nav className="mnav" aria-label="Lobby">
+    <nav className="mnav" aria-label="Sections">
       <div className="mnav-list" role="tablist" aria-label="Screens" onKeyDown={tabKeys("lb-mtab")}>
         {screens.map((s) => {
           const selected = s.id === screen;
@@ -593,9 +459,9 @@ function MobileNav() {
               id={`lb-mtab-${s.id}`}
               type="button"
               role="tab"
-              className={selected && !comms ? "is-active" : undefined}
+              className={selected ? "is-active" : undefined}
               aria-selected={selected}
-              aria-controls={selected && !comms && hasPanel(s.id) ? `lb-panel-${s.id}` : undefined}
+              aria-controls={selected && hasPanel(s.id) ? `lb-panel-${s.id}` : undefined}
               tabIndex={selected ? 0 : -1}
               data-opener={`mtab-${s.id}`}
               onClick={() => go(s.id)}
@@ -625,13 +491,12 @@ function Toast() {
 export default function Hud() {
   const phase = useLobby((s) => s.phase);
   const screen = useLobby((s) => s.screen);
-  const comms = useLobby((s) => s.comms);
   useEffect(trackOpeners, []);
   if (phase !== "lobby") return null;
-  const inLobby = screen === "lobby" && !comms;
+  const inLobby = screen === "home";
   return (
     <div className={`hud ${inLobby ? "is-lobby" : "is-screen"}`}>
-      <h1 className="sr-only">{site.name}</h1>
+      <h1 className="sr-only">{resume.name}</h1>
       <MarkerLabels />
       <header className="hud-top">
         <PlayerCard />
@@ -640,18 +505,15 @@ export default function Hud() {
       </header>
       {inLobby && (
         <>
-          <Banners />
+          <Brief />
           <ModeCard />
           <footer className="hud-bottom">
-            <Squad />
-            <Ticker />
-            <CommsDock />
+            <Dock />
           </footer>
         </>
       )}
       <Scope />
       <ScreenPanel />
-      <CommsPanel />
       <BackButton />
       <Settings />
       <MobileNav />

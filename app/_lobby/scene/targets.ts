@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { landmarks } from "@/content/lobby";
+import { landmarks } from "@/content/scene";
 import { markerMeta, type MarkerMeta } from "../marker-meta";
 import { GROUND_Y, landmarkTop, polarToScene } from "./geo";
 

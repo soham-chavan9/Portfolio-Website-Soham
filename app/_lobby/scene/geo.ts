@@ -1,4 +1,4 @@
-import { fromViewpoint, landmarks } from "@/content/lobby";
+import { fromViewpoint, landmarks } from "@/content/scene";
 
 // The balcony is modelled at 1:1 (meters). The city is modelled at 1:5 and
 // placed closer, which reads identically from the balcony but keeps depth

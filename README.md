@@ -36,13 +36,12 @@ one — `sohamchavan.dev` or similar reads better on a resume than a
 
 | File | What is in it |
 | --- | --- |
-| `content/site.ts` | Name, headline, intro, status, contact links, hero stats, and nav |
-| `content/portfolio.ts` | Featured work, experience, projects, testimonials, services, skills, education, and current status |
-| `content/shipped.ts` | Work index data for case-study entries and project summaries |
-| `content/writeups.ts` | The three case studies, as arrays of blocks (`p`, `h`, `code`) |
+| `content/resume.ts` | Every fact on the site, transcribed from the SDE resume. The only source of truth |
+| `content/site.ts` | Deployment URL, asset paths, and the meta description built from resume facts |
+| `content/scene.ts` | Lobby screens, which tower each resume item is pinned to, and neutral UI copy |
 
-No component needs touching to change copy. Adding a fourth writeup means one
-entry in `writeups.ts` and a matching `slug` in `shipped.ts`.
+If a claim is not in `resume.ts`, it does not ship. The redesign plan is in
+[`docs/redesign-plan.md`](docs/redesign-plan.md).
 
 ## Things worth adding later
 

@@ -10,27 +10,47 @@ html.lobby-lock body {
 }
 
 .lobby-root {
-  --amber: #ffb23f;
-  --amber-hot: #ffd27a;
-  --amber-deep: #ff8f1f;
-  --amber-ink: #1b1305;
-  --cyan: #6fe3ff;
-  --ink: #eef2f8;
-  --ink-2: #b9c3d1;
+  /* Launch Deck design tokens (docs/redesign-plan.md, section 4). New work
+     uses these; the older names below alias them until each screen is rebuilt. */
+  --ink-0: #07090e;
+  --ink-1: #0e121b;
+  --text-1: #eef1f6;
+  --text-2: #a3acbb;
+  --accent: #f2a541;
+  --accent-hot: #ffc977;
+  --accent-ink: #1b1305;
+  --signal: #7fd1ff;
+  --ok: #5fd39a;
+  --panel: rgba(14, 18, 27, 0.78);
+  --blur: 24px;
+  --t-hover: 120ms;
+  --t-panel: 240ms;
+  --t-screen: 480ms;
+  --t-camera: 900ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --font-hud: var(--font-ui), "Segoe UI", system-ui, sans-serif;
+  --font-big: var(--font-display), "Arial Narrow", sans-serif;
+  --font-code: var(--font-num), var(--font-code);
+
+  /* Legacy names, aliased onto the tokens above. */
+  --amber: var(--accent);
+  --amber-hot: var(--accent-hot);
+  --amber-deep: #e08a1e;
+  --amber-ink: var(--accent-ink);
+  --cyan: var(--signal);
+  --ink: var(--text-1);
+  --ink-2: #c3cad6;
   /* Dimmest text; still >= 4.5:1 over the translucent glass on a lit sky. */
-  --ink-3: #8d99ad;
+  --ink-3: var(--text-2);
   --glass: rgba(9, 13, 21, 0.62);
   --glass-2: rgba(12, 16, 26, 0.84);
-  --line: rgba(255, 255, 255, 0.1);
-  --line-2: rgba(255, 255, 255, 0.2);
-  --green: #5dff9e;
+  --line: rgba(238, 241, 246, 0.1);
+  --line-2: rgba(238, 241, 246, 0.2);
+  --green: var(--ok);
   --c: 10px;
   --cut: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
   --gutter: clamp(14px, 1.6vw, 24px);
   --top-h: 92px;
-  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --font-hud: var(--font-ui), "Segoe UI", system-ui, sans-serif;
-  --font-big: var(--font-display), "Arial Narrow", sans-serif;
 }
 
 .lobby {
@@ -67,9 +87,12 @@ html.lobby-lock body {
   text-decoration: none;
 }
 
+/* One focus treatment everywhere: a 2px accent ring with a dark halo so it
+   reads over both glass panels and the lit skyline. */
 .lobby :focus-visible {
-  outline: 2px solid var(--amber);
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
+  box-shadow: 0 0 0 5px rgba(7, 9, 14, 0.55);
 }
 
 /* Panels take programmatic focus only; no ring around the whole shell. */
@@ -80,7 +103,6 @@ html.lobby-lock body {
 /* Clipped (chamfered) controls would cut an outside ring off: draw it inside. */
 .lobby .player-avatar:focus-visible,
 .lobby .banner:focus-visible,
-.lobby .squad:focus-visible,
 .lobby .mk-btn:focus-visible,
 .lobby .mnav button:focus-visible,
 .lobby .setting:focus-visible {
@@ -100,7 +122,7 @@ html.lobby-lock body {
 }
 
 .lobby kbd {
-  font-family: var(--font-mono), ui-monospace, monospace;
+  font-family: var(--font-code);
 }
 
 .sr-only {
@@ -271,7 +293,7 @@ html.lobby-lock body {
 
 .boot-line b {
   color: var(--amber);
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-code);
   font-weight: 400;
 }
 
@@ -348,7 +370,7 @@ html.lobby-lock body {
 }
 
 .title-time {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-code);
   letter-spacing: 0.08em;
 }
 
@@ -1324,7 +1346,7 @@ a.banner:hover {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-2);
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-code);
   white-space: nowrap;
 }
 
@@ -1603,7 +1625,7 @@ a.banner:hover {
 }
 
 .list-code {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-code);
   font-size: 11px;
   color: var(--cyan);
 }
@@ -1991,7 +2013,7 @@ a.banner:hover {
 
 .slot-count {
   margin-left: auto;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-code);
   font-size: 11px;
   color: var(--ink-3);
 }
@@ -2175,7 +2197,7 @@ a.banner:hover {
 }
 
 .channel-value {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-code);
   font-size: 15px;
   font-weight: 400;
   word-break: break-all;
@@ -2364,7 +2386,7 @@ a.banner:hover {
 }
 
 .scope-read span {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-code);
   font-size: 11px;
   color: var(--cyan);
 }
@@ -2440,7 +2462,7 @@ a.banner:hover {
 }
 
 .mk-code {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-code);
   font-size: 10px;
   color: #6fe3ff;
 }

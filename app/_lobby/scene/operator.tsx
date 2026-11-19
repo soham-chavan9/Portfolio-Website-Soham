@@ -355,7 +355,7 @@ function Model({ position }: { position: [number, number, number] }) {
     // Where the camera is, relative to the way he's facing.
     camera.getWorldPosition(tmp);
     const toCamera = wrap(Math.atan2(tmp.x - position[0], tmp.z - position[2]) - OPERATOR_YAW);
-    const presenting = s.screen === "loadout" || s.screen === "intel";
+    const presenting = s.screen === "skills" || s.screen === "contact";
 
     if (s.emote !== a.lastEmote) {
       a.lastEmote = s.emote;

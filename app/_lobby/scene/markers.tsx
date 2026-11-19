@@ -125,14 +125,13 @@ export default function Markers() {
   const screen = useLobby((s) => s.screen);
   const focus = useLobby((s) => s.focus);
   const phase = useLobby((s) => s.phase);
-  const comms = useLobby((s) => s.comms);
   return (
     <group>
       {markers.map((m) => (
         <Marker
           key={m.id}
           m={m}
-          active={phase === "lobby" && !comms && m.screen === screen}
+          active={phase === "lobby" && m.screen === screen}
           selected={focus === m.id}
         />
       ))}

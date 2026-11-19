@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { landmarks } from "@/content/lobby";
+import { landmarks } from "@/content/scene";
 import {
   CITY_SCALE,
   GROUND_Y,

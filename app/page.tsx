@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
-import { Chakra_Petch, Saira_Condensed } from "next/font/google";
+import { Geist, Geist_Mono, Saira_Condensed } from "next/font/google";
 import Link from "next/link";
-import { featuredWork } from "@/content/portfolio";
-import { site } from "@/content/site";
+import { currentRole, resume } from "@/content/resume";
 import LobbyApp from "./_lobby/lobby-app";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const ui = Chakra_Petch({
+const ui = Geist({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-ui",
+  display: "swap",
+});
+
+const num = Geist_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-num",
   display: "swap",
 });
 
@@ -25,16 +31,15 @@ const display = Saira_Condensed({
 
 export default function Home() {
   return (
-    <main className={`${ui.variable} ${display.variable} lobby-root`}>
+    <main className={`${ui.variable} ${num.variable} ${display.variable} lobby-root`}>
       <div className="sr-only">
         <p>
-          {site.name}: {site.headline}. {site.intro}
+          {resume.name}, {resume.headline}, {resume.location}. {currentRole.title} at {currentRole.org}.
         </p>
         <p>
           This page is an interactive 3D lobby. For a plain, fully readable
           version, <Link href="/classic">open the classic view</Link>.
         </p>
-        <p>Featured work: {featuredWork.summary}</p>
       </div>
       <LobbyApp />
       {/* Shown by CSS only when the scene could not start WebGL. */}

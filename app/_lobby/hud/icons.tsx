@@ -107,29 +107,29 @@ export const IconWave = (p: P) => (
 // Tab glyphs for the bottom bar on phones.
 export const TabGlyph = ({ id, ...p }: P & { id: string }) => {
   switch (id) {
-    case "lobby":
+    case "home":
       return (
         <svg {...base(p)}>
           <path d="M4 20V10l8-6 8 6v10h-5v-6H9v6z" />
         </svg>
       );
-    case "missions":
+    case "experience":
       return <IconTarget {...p} />;
-    case "arsenal":
+    case "projects":
       return (
         <svg {...base(p)}>
           <rect x="3.5" y="6" width="17" height="12" rx="1.5" />
           <path d="M3.5 10h17M9 6V4.5h6V6" />
         </svg>
       );
-    case "loadout":
+    case "skills":
       return (
         <svg {...base(p)}>
           <path d="M12 3 4.5 6v5.5c0 4.5 3.2 8.2 7.5 9.5 4.3-1.3 7.5-5 7.5-9.5V6z" />
           <path d="m9 12 2 2 4-4" />
         </svg>
       );
-    case "career":
+    case "education":
       return (
         <svg {...base(p)}>
           <path d="M4 19h16M6 19V11M10 19V7M14 19v-9M18 19V4" />

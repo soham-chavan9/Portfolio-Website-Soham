@@ -1,17 +1,17 @@
 import {
-  careerPins,
+  educationPins,
+  experiencePins,
   landmarks,
-  missionTargets,
-  projectTargets,
+  projectPins,
   rangeLabel,
   type ScreenId,
-} from "@/content/lobby";
-import { featuredWork, projects } from "@/content/portfolio";
+} from "@/content/scene";
+import { resume } from "@/content/resume";
 
 // What each in-world marker says. Positions live in scene/targets.ts; the
 // projected screen positions are written into `markerScreen` every frame.
-// Content can grow or lose entries independently of the target maps, so
-// anything without a known landmark simply gets no marker instead of crashing.
+// Titles come from resume.ts; pins from scene.ts. Anything without a known
+// landmark or bearing simply gets no marker instead of crashing.
 
 export type MarkerMeta = {
   id: string;
@@ -31,49 +31,53 @@ export function isLandmark(id: string | null | undefined): id is string {
 /** "One World Trade Center · 2.41 km · 118° SE" */
 export const pinLabel = (landmark: string) => `${landmarks[landmark].name} · ${rangeLabel(landmark)}`;
 
-/** Stable two-digit codes that keep working past nine entries: M-01 … M-12. */
+/** Stable two-digit codes that keep working past nine entries: E-01 … E-12. */
 export const markerCode = (prefix: string, index: number) => `${prefix}-${String(index + 1).padStart(2, "0")}`;
 
+const pinnedBullets = resume.experience
+  .flatMap((role) => role.bullets)
+  .filter((b) => isLandmark(experiencePins[b.id]));
+
 export const markerMeta: MarkerMeta[] = [
-  ...featuredWork.systems.flatMap((s, i): MarkerMeta[] => {
-    const landmark = missionTargets[s.id];
-    if (!isLandmark(landmark)) return [];
-    return [
-      {
-        id: s.id,
-        screen: "missions",
-        code: markerCode("M", i),
-        title: s.label,
-        sub: pinLabel(landmark),
-        landmark,
-      },
-    ];
-  }),
-  ...projects.flatMap((p, i): MarkerMeta[] => {
-    const landmark = projectTargets[i];
-    if (!isLandmark(landmark)) return [];
-    return [
-      {
-        id: `p${i}`,
-        screen: "arsenal",
-        code: markerCode("A", i),
-        title: p.title.split(",")[0],
-        sub: pinLabel(landmark),
-        landmark,
-      },
-    ];
-  }),
-  ...careerPins.map((pin, i): MarkerMeta => {
-    const landmark = isLandmark(pin.landmark) ? pin.landmark : null;
+  ...pinnedBullets.map((b, i): MarkerMeta => {
+    const landmark = experiencePins[b.id];
     return {
-      id: pin.id,
-      screen: "career",
-      code: markerCode("C", i),
-      title: pin.org,
-      sub: landmark ? pinLabel(landmark) : pin.note,
+      id: b.id,
+      screen: "experience",
+      code: markerCode("E", i),
+      title: b.label,
+      sub: pinLabel(landmark),
       landmark,
-      bearing: pin.bearing,
     };
+  }),
+  ...resume.projects.flatMap((p, i): MarkerMeta[] => {
+    const landmark = projectPins[p.id];
+    if (!isLandmark(landmark)) return [];
+    return [
+      {
+        id: p.id,
+        screen: "projects",
+        code: markerCode("P", i),
+        title: p.name,
+        sub: pinLabel(landmark),
+        landmark,
+      },
+    ];
+  }),
+  ...resume.education.flatMap((e, i): MarkerMeta[] => {
+    const bearing = educationPins[e.id];
+    if (typeof bearing !== "number") return [];
+    return [
+      {
+        id: e.id,
+        screen: "education",
+        code: markerCode("S", i),
+        title: e.school,
+        sub: e.location,
+        landmark: null,
+        bearing,
+      },
+    ];
   }),
 ];
 

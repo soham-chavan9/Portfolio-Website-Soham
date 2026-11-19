@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { site } from "@/content/site";
+import { highlights, resume } from "@/content/resume";
 import { defaultTitle } from "./seo";
 
 export const alt = defaultTitle;
@@ -30,13 +30,13 @@ export default function OpenGraphImage() {
         }}
       >
         <div style={{ display: "flex", fontSize: 42, color: "#3448a4", marginBottom: 24 }}>
-          {site.name}
+          {resume.name}
         </div>
         <div style={{ display: "flex", fontSize: 72, lineHeight: 1.08, marginBottom: 32 }}>
-          {site.headline}
+          {resume.headline}, {resume.location}
         </div>
         <div style={{ display: "flex", fontSize: 32, lineHeight: 1.35, color: "#454854", maxWidth: 880 }}>
-          {site.description}
+          {highlights.map((h) => `${h.value} ${h.label}`).join(" · ")}
         </div>
       </div>
     ),

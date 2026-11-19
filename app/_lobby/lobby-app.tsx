@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
-import { screens, type ScreenId } from "@/content/lobby";
+import { screens, type ScreenId } from "@/content/scene";
 import { audio } from "./audio";
 import { back, cycle, deploy, emote, go, setSound } from "./actions";
 import { BootScreen, IntroOverlay, TitleScreen } from "./hud/boot";
@@ -40,8 +40,9 @@ export default function LobbyApp() {
       reducedMotion: motion(),
       touch,
       quality: q === "high" || q === "low" ? q : touch || cores <= 4 ? "low" : "high",
-      sound: readPref("sound") !== "0",
-      music: readPref("music") !== "0",
+      // Sound is opt-in: people often open portfolios at work.
+      sound: readPref("sound") === "1",
+      music: readPref("music") === "1",
     });
     const onMotion = () => lobby.set({ reducedMotion: motion() });
 
@@ -69,13 +70,13 @@ export default function LobbyApp() {
       window.removeEventListener("pointerdown", wake);
       window.removeEventListener("keydown", wake);
       document.documentElement.classList.remove("lobby-lock");
-      // Client-side navigation away (Classic view, field reports) must not
+      // Client-side navigation away (the Classic view) must not
       // leave the lobby music playing over the next page.
       audio.stop();
     };
   }, []);
 
-  // Deep links: /#missions opens Missions once the lobby is live, and so
+  // Deep links: /#projects opens Projects once the lobby is live, and so
   // does editing the hash afterwards.
   useEffect(() => {
     if (phase !== "lobby") return;
@@ -101,7 +102,7 @@ export default function LobbyApp() {
       const s = lobby.get();
       const k = e.key.toLowerCase();
       if (k === "escape") {
-        if (s.settings || s.comms || s.screen !== "lobby") {
+        if (s.settings || s.screen !== "home") {
           back();
           e.preventDefault();
         }
@@ -118,7 +119,9 @@ export default function LobbyApp() {
         setSound(!s.sound);
       } else if (/^[1-9]$/.test(k) && Number(k) <= screens.length) {
         go(screens[Number(k) - 1].id);
-      } else if (k === "enter" && s.screen === "lobby" && !s.comms && !s.settings && (!t || t === document.body)) {
+      } else if (k === "c") {
+        go("contact");
+      } else if (k === "enter" && s.screen === "home" && !s.settings && (!t || t === document.body)) {
         deploy();
       } else {
         return;

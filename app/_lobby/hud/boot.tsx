@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { bootLines, tips, viewpoint } from "@/content/lobby";
-import { site } from "@/content/site";
+import { bootLines, tips } from "@/content/scene";
+import { resume } from "@/content/resume";
 import { setSound, skipIntro, start } from "../actions";
 import { lobby, useLobby } from "../store";
 import { Emblem, IconMute, IconSound } from "./icons";
@@ -31,26 +31,6 @@ const PASSIVE_KEYS = new Set([
   "AudioVolumeDown",
   "AudioVolumeMute",
 ]);
-
-export function useNycClock() {
-  const [time, setTime] = useState("");
-  useEffect(() => {
-    const fmt = new Intl.DateTimeFormat("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      timeZone: "America/New_York",
-    });
-    let id = 0;
-    const tick = () => {
-      setTime(fmt.format(new Date()));
-      // Wake on the next minute boundary so the clock never lags a minute.
-      id = window.setTimeout(tick, 60_000 - (Date.now() % 60_000) + 50);
-    };
-    tick();
-    return () => window.clearTimeout(id);
-  }, []);
-  return time;
-}
 
 export function BootScreen() {
   const phase = useLobby((s) => s.phase);
@@ -106,7 +86,7 @@ export function BootScreen() {
     <div className="boot" aria-busy={!ready}>
       <div className="boot-center">
         <Emblem className="boot-emblem" />
-        <p className="boot-name">{site.name}</p>
+        <p className="boot-name">{resume.name}</p>
         <div
           className="boot-bar"
           role="progressbar"
@@ -144,7 +124,6 @@ export function TitleScreen() {
   const phase = useLobby((s) => s.phase);
   const sound = useLobby((s) => s.sound);
   const touch = useLobby((s) => s.touch);
-  const time = useNycClock();
 
   useEffect(() => {
     if (phase !== "title") return;
@@ -168,16 +147,14 @@ export function TitleScreen() {
   if (phase !== "title") return null;
   return (
     <div className="title" onClick={() => start()}>
-      <div className="title-top">
-        <span className="title-tag">
-          <i aria-hidden /> Live · {viewpoint.name}
-        </span>
-        <span className="title-time">{time ? `${time} ET` : ""}</span>
-      </div>
+      {/* Keeps the title grid's first row; the location line that lived here was removed. */}
+      <div className="title-top" aria-hidden />
       <div className="title-main">
-        <p className="title-kicker">Portfolio · Season 03</p>
-        <h1 className="title-name">{site.name}</h1>
-        <p className="title-role">{site.headline}</p>
+        <p className="title-kicker">Portfolio</p>
+        <h1 className="title-name">{resume.name}</h1>
+        <p className="title-role">
+          {resume.headline} · {resume.location}
+        </p>
         <button
           type="button"
           className="title-start"
@@ -211,7 +188,6 @@ export function TitleScreen() {
 
 export function IntroOverlay() {
   const phase = useLobby((s) => s.phase);
-  const time = useNycClock();
   useEffect(() => {
     if (phase !== "intro") return;
     const skip = (e: Event) => {
@@ -235,10 +211,8 @@ export function IntroOverlay() {
       <div className="intro-bar top" />
       <div className="intro-bar bottom" />
       <div className="intro-caption">
-        <p>{viewpoint.name}</p>
-        <p>
-          {time && `${time} ET · `}140 m above the Hudson
-        </p>
+        <p>{resume.name}</p>
+        <p>{resume.headline}</p>
       </div>
       <p className="intro-skip">Press any key to skip</p>
     </div>

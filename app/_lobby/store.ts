@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { ScreenId } from "@/content/lobby";
+import type { ScreenId } from "@/content/scene";
 
 export type Phase = "boot" | "title" | "intro" | "lobby";
 export type Quality = "high" | "low";
@@ -7,14 +7,13 @@ export type Quality = "high" | "low";
 export type LobbyState = {
   phase: Phase;
   screen: ScreenId;
-  /** Selected marker (mission / project / career pin) the camera aims at. */
+  /** Selected marker (experience / project / education pin) the camera aims at. */
   focus: string | null;
   hovered: string | null;
   quality: Quality;
   sound: boolean;
   music: boolean;
   reducedMotion: boolean;
-  comms: boolean;
   settings: boolean;
   sceneReady: boolean;
   /** Bumped to trigger the operator emote. */
@@ -32,14 +31,13 @@ export type LobbyState = {
 
 const initial: LobbyState = {
   phase: "boot",
-  screen: "lobby",
+  screen: "home",
   focus: null,
   hovered: null,
   quality: "high",
-  sound: true,
-  music: true,
+  sound: false,
+  music: false,
   reducedMotion: false,
-  comms: false,
   settings: false,
   sceneReady: false,
   emote: 0,

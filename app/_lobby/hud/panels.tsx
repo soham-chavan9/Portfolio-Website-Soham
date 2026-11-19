@@ -1,39 +1,17 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
-import {
-  careerPins,
-  loadoutSlots,
-  missionReports,
-  missionTargets,
-  projectTargets,
-  type ScreenId,
-} from "@/content/lobby";
-import {
-  about,
-  education,
-  experience,
-  featuredWork,
-  nowItems,
-  projects,
-  services,
-  skillGroups,
-  testimonials,
-} from "@/content/portfolio";
-import { shipped } from "@/content/shipped";
-import { site } from "@/content/site";
+import { useEffect, useLayoutEffect, useRef, type PointerEvent, type ReactNode } from "react";
+import { experiencePins, projectPins, screens, type ScreenId } from "@/content/scene";
+import { resume, spanLabel, type Bullet, type Role } from "@/content/resume";
 import { audio } from "../audio";
-import { back, copyEmail, openComms, rememberScreen } from "../actions";
+import { back, copyEmail } from "../actions";
 import { isLandmark, markerCode, pinLabel } from "../marker-meta";
 import { lobby, useLobby } from "../store";
 import {
-  IconArrow,
   IconBack,
   IconCheck,
   IconClose,
   IconCopy,
-  IconDownload,
   IconGithub,
   IconLinkedin,
   IconMail,
@@ -85,22 +63,6 @@ export function restoreFocus() {
   });
 }
 
-// ------------------------------------------------------------- Content --
-
-type Commendation = { quote: string; name: string; role: string; initials?: string };
-
-/** Testimonials may be empty; every consumer renders nothing in that case. */
-export const commendations: readonly Commendation[] = testimonials;
-
-export const initialsOf = (c: Commendation) =>
-  c.initials ??
-  c.name
-    .split(/\s+/)
-    .map((w) => w[0] ?? "")
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
 // ---------------------------------------------------------------- Shell --
 
 /** Panel shell: reports its footprint so the 3D camera re-centers beside it. */
@@ -111,7 +73,7 @@ function Panel({
   children,
   role = "tabpanel",
   onClose = back,
-  closeLabel = "Back to lobby",
+  closeLabel = "Back to home",
 }: {
   id: string;
   eyebrow: string;
@@ -207,15 +169,6 @@ function Chips({ items }: { items: string[] }) {
   );
 }
 
-function ReportLink({ slug, children }: { slug: string; children: ReactNode }) {
-  return (
-    <Link className="btn-line" href={`/work/${slug}`} onClick={rememberScreen} onPointerEnter={hover}>
-      {children}
-      <IconArrow />
-    </Link>
-  );
-}
-
 function PinnedOn({ landmark }: { landmark: string | null | undefined }) {
   if (!isLandmark(landmark)) return null;
   return (
@@ -228,420 +181,240 @@ function PinnedOn({ landmark }: { landmark: string | null | undefined }) {
 
 // ---------------------------------------------------------------------------
 
-function Missions() {
-  const focus = useLobby((s) => s.focus);
-  const systems = featuredWork.systems;
-  const active = systems.find((s) => s.id === focus) ?? systems[0];
-  // Phase selection belongs to one mission; switching missions starts at 1
-  // on the same render instead of flashing the previous mission's index.
-  const [opened, setOpened] = useState<{ id: string; step: number }>({ id: "", step: 0 });
-  const activeId = active?.id ?? "";
-  const step = opened.id === activeId ? opened.step : 0;
-  const report = missionReports[activeId];
+/** "02 · Experience": the tab's position, so the eyebrow doubles as a map. */
+function eyebrowFor(id: ScreenId) {
+  const i = screens.findIndex((x) => x.id === id);
+  const label = screens[i]?.label ?? id;
+  return `${String(i + 1).padStart(2, "0")} · ${label}`;
+}
 
+function BulletList({ bullets }: { bullets: Bullet[] }) {
+  if (bullets.length === 0) return null;
   return (
-    <Panel id="missions" eyebrow="Missions · Featured work" title={featuredWork.title}>
-      <p className="lede">{featuredWork.summary}</p>
-      <Facts items={featuredWork.facts} />
+    <ul className="objectives">
+      {bullets.map((b) => (
+        <li key={b.id}>
+          <IconCheck width={15} height={15} />
+          <span>{b.text}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
-      {systems.length > 1 && (
-        <div className="list" role="group" aria-label="Missions">
-          {systems.map((s, i) => (
+function RoleHead({ role }: { role: Role }) {
+  return (
+    <>
+      <h3>{role.org}</h3>
+      <p className="sub">
+        {role.title} · {role.location} · {spanLabel(role.span)}
+      </p>
+    </>
+  );
+}
+
+/** A role whose bullets are pinned on towers: pick one to fly the camera to it. */
+function PinnedRole({ role }: { role: Role }) {
+  const focus = useLobby((s) => s.focus);
+  const pinned = role.bullets.filter((b) => isLandmark(experiencePins[b.id]));
+  const rest = role.bullets.filter((b) => !isLandmark(experiencePins[b.id]));
+  const active = pinned.find((b) => b.id === focus) ?? pinned[0];
+  return (
+    <section className="lb-role" aria-labelledby={`role-${role.id}`}>
+      <h3 id={`role-${role.id}`}>{role.org}</h3>
+      <p className="sub">
+        {role.title} · {role.location} · {spanLabel(role.span)}
+      </p>
+      <BulletList bullets={rest} />
+      {pinned.length > 0 && (
+        <div className="list" role="group" aria-label={`${role.org} work`}>
+          {pinned.map((b, i) => (
             <button
-              key={s.id}
+              key={b.id}
               type="button"
-              aria-pressed={s.id === activeId}
+              aria-pressed={b.id === active?.id}
               className="list-item"
               onPointerEnter={hover}
               onClick={() => {
                 audio.click();
-                lobby.set({ focus: s.id });
+                lobby.set({ focus: b.id });
               }}
             >
-              <span className="list-code">{markerCode("M", i)}</span>
-              <span className="list-name">{s.label}</span>
-              <span className="list-status">
-                <IconCheck width={14} height={14} /> Shipped
-              </span>
+              <span className="list-code">{markerCode("E", i)}</span>
+              <span className="list-name">{b.label}</span>
+              {b.highlight && <span className="list-status">{b.highlight.value}</span>}
             </button>
           ))}
         </div>
       )}
-
       {active && (
         <article className="detail" key={active.id}>
-          <PinnedOn landmark={missionTargets[active.id]} />
-          <h3>{active.title}</h3>
-          <p>{active.intro}</p>
-          {active.bullets.length > 0 && (
-            <>
-              <h4>Objectives</h4>
-              <ul className="objectives">
-                {active.bullets.map((b) => (
-                  <li key={b}>
-                    <IconCheck width={15} height={15} />
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-          {active.steps && active.steps.length > 0 ? (
-            <>
-              <h4>Phases</h4>
-              <ol className="phases">
-                {active.steps.map((st, i) => (
-                  <li key={st.title} className={i === step ? "on" : ""}>
-                    <button
-                      type="button"
-                      aria-expanded={i === step}
-                      onPointerEnter={hover}
-                      onClick={() => {
-                        audio.click();
-                        setOpened({ id: active.id, step: i });
-                      }}
-                    >
-                      <span className="phase-n" aria-hidden>
-                        {i + 1}
-                      </span>
-                      <span>
-                        <b>{st.title}</b>
-                        <small>{st.note}</small>
-                      </span>
-                    </button>
-                    {i === step && <p>{st.detail}</p>}
-                  </li>
-                ))}
-              </ol>
-            </>
-          ) : (
-            active.facts &&
-            active.facts.length > 0 && (
-              <>
-                <h4>Intel</h4>
-                <Facts items={active.facts} />
-              </>
-            )
-          )}
-          {report && <ReportLink slug={report}>Read the field report</ReportLink>}
+          <PinnedOn landmark={experiencePins[active.id]} />
+          <h4>{active.label}</h4>
+          <p>{active.text}</p>
         </article>
       )}
+    </section>
+  );
+}
 
-      <p className="fine">{featuredWork.role}</p>
+function Experience() {
+  return (
+    <Panel id="experience" eyebrow={eyebrowFor("experience")} title="Experience">
+      {resume.experience.map((role) =>
+        role.bullets.some((b) => isLandmark(experiencePins[b.id])) ? (
+          <PinnedRole key={role.id} role={role} />
+        ) : (
+          <section key={role.id} className="lb-role" aria-label={role.org}>
+            <RoleHead role={role} />
+            <BulletList bullets={role.bullets} />
+          </section>
+        ),
+      )}
     </Panel>
   );
 }
 
-function Arsenal() {
+function Projects() {
   const focus = useLobby((s) => s.focus);
-  const parsed = focus?.startsWith("p") ? Number(focus.slice(1)) : 0;
-  const index = Number.isInteger(parsed) && parsed >= 0 && parsed < projects.length ? parsed : 0;
-  const p = projects[index];
+  const list = resume.projects;
+  const p = list.find((x) => x.id === focus) ?? list[0];
   return (
-    <Panel id="arsenal" eyebrow="Arsenal · Projects" title="Side projects">
-      <p className="lede">Projects where I owned the whole thing, from problem to deployed product.</p>
-      {projects.length > 1 && (
+    <Panel id="projects" eyebrow={eyebrowFor("projects")} title="Projects">
+      {list.length > 1 && (
         <div className="cards" role="group" aria-label="Projects">
-          {projects.map((proj, i) => (
+          {list.map((proj) => (
             <button
-              key={proj.title}
+              key={proj.id}
               type="button"
-              aria-pressed={i === index}
+              aria-pressed={proj.id === p?.id}
               className="card"
               onPointerEnter={hover}
               onClick={() => {
                 audio.click();
-                lobby.set({ focus: `p${i}` });
+                lobby.set({ focus: proj.id });
               }}
             >
               <img src={proj.image} alt="" width={160} height={160} loading="lazy" decoding="async" />
-              <span>{proj.title.split(",")[0]}</span>
+              <span>{proj.name}</span>
             </button>
           ))}
         </div>
       )}
 
       {p && (
-        <article className="detail" key={p.title}>
-          <PinnedOn landmark={projectTargets[index]} />
+        <article className="detail" key={p.id}>
+          <PinnedOn landmark={projectPins[p.id]} />
           <figure className="lb-shot">
             <img src={p.image} alt={p.alt} width={1024} height={1024} decoding="async" />
           </figure>
-          <h3>{p.title}</h3>
-          <p className="sub">{p.role}</p>
-          <Facts
-            items={[
-              { label: "Timeline", value: p.timeline },
-              { label: "Team", value: p.team },
-            ]}
-          />
-          <h4>Problem</h4>
-          <p>{p.problem}</p>
-          <h4>Built</h4>
-          <p>{p.built}</p>
+          <h3>{p.name}</h3>
+          <p className="sub">
+            {p.subtitle} · {spanLabel(p.span)}
+          </p>
+          <BulletList bullets={p.bullets} />
           <Chips items={p.stack} />
-          {p.repo && (
-            <a className="btn-line" href={p.repo} target="_blank" rel="noreferrer" onPointerEnter={hover}>
-              View code on GitHub<span className="sr-only">: {p.title}</span>
-            </a>
-          )}
+          <a className="btn-line" href={p.repo} target="_blank" rel="noreferrer" onPointerEnter={hover}>
+            <IconGithub /> View code on GitHub<span className="sr-only">: {p.name} (opens in a new tab)</span>
+          </a>
         </article>
       )}
-
-      {shipped.length > 0 && (
-        <>
-          <h4 className="section-label">Service record · everything shipped</h4>
-          <ul className="log">
-            {shipped.map((item) => (
-              <li key={item.title}>
-                <div>
-                  <b>{item.title}</b>
-                  <span>
-                    {item.when} · {item.where}
-                  </span>
-                </div>
-                <p>{item.summary}</p>
-                {item.platforms && item.platforms.length > 0 && (
-                  <ul className="platforms" aria-label="Platforms">
-                    {item.platforms.map((pl) => (
-                      <li key={pl}>{pl === "ios" ? "iOS" : pl === "server" ? "Server" : pl === "web" ? "Web" : "Android"}</li>
-                    ))}
-                  </ul>
-                )}
-                {item.slug && (
-                  <ReportLink slug={item.slug}>
-                    Field report<span className="sr-only">: {item.title}</span>
-                  </ReportLink>
-                )}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
     </Panel>
   );
 }
 
-function Loadout() {
-  const slots = loadoutSlots.flatMap(({ slot, groupIndex }) => {
-    const group = skillGroups[groupIndex];
-    return group ? [{ slot, group }] : [];
-  });
+function Skills() {
   return (
-    <Panel id="loadout" eyebrow="Loadout · Skills" title="Full-stack specialist">
-      <p className="lede">{site.description}</p>
-      <h4 className="section-label">Classes</h4>
-      <Chips items={site.roles} />
-      {services.length > 0 && (
-        <>
-          <h4 className="section-label">Abilities</h4>
-          <div className="abilities">
-            {services.map((s, i) => (
-              <article key={s.label} className="ability">
-                <span className="ability-n" aria-hidden>
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <div>
-                  <h3>{s.label}</h3>
-                  <p>{s.text}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </>
-      )}
-      {slots.length > 0 && (
-        <>
-          <h4 className="section-label">Equipped</h4>
-          <div className="slots">
-            {slots.map(({ slot, group }) => (
-              <section key={slot} className="slot" aria-label={`${slot}: ${group.label}`}>
-                <header>
-                  <span className="slot-name">{slot}</span>
-                  <span className="slot-group">{group.label}</span>
-                  <span className="slot-count">{group.items.length}</span>
-                </header>
-                <Chips items={group.items} />
-              </section>
-            ))}
-          </div>
-        </>
-      )}
-    </Panel>
-  );
-}
-
-const pinForOrg = (org: string) => careerPins.find((p) => org.includes(p.org.split(" ")[0]))?.id ?? null;
-
-function Career() {
-  const focus = useLobby((s) => s.focus);
-  return (
-    <Panel id="career" eyebrow="Career · Experience" title="Service record">
-      <ol className="seasons">
-        {experience.map((item, i) => {
-          const pin = pinForOrg(item.org);
-          const season = experience.length - i;
-          return (
-            <li key={item.org + item.when} className={pin && pin === focus ? "on" : ""}>
-              <button
-                type="button"
-                className="season-head"
-                aria-pressed={pin ? pin === focus : undefined}
-                aria-label={pin ? `${item.org}, ${item.when}. Show on the map` : undefined}
-                onPointerEnter={hover}
-                onClick={() => {
-                  audio.click();
-                  lobby.set({ focus: pin });
-                }}
-              >
-                <span className="season-n" aria-hidden>
-                  S{season}
-                </span>
-                <span>
-                  <b>{item.org}</b>
-                  <small>{item.when}</small>
-                </span>
-                {pin && <IconPin width={16} height={16} />}
-              </button>
-              <h3>{item.title}</h3>
-              <ul>
-                {item.points.map((pt) => (
-                  <li key={pt}>{pt}</li>
-                ))}
-              </ul>
-            </li>
-          );
-        })}
-      </ol>
-
-      {education.length > 0 && (
-        <>
-          <h4 className="section-label">Education</h4>
-          <ul className="edu">
-            {education.map((e) => (
-              <li key={e.degree}>
-                <b>{e.degree}</b>
-                <span>{e.meta}</span>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-
-      {commendations.length > 0 && (
-        <>
-          <h4 className="section-label">Commendations</h4>
-          <div className="lb-quotes">
-            {commendations.map((t) => (
-              <figure key={t.name} className="lb-quote">
-                <blockquote>{t.quote}</blockquote>
-                <figcaption>
-                  <span className="lb-avatar" aria-hidden>
-                    {initialsOf(t)}
-                  </span>
-                  <span>
-                    <b>{t.name}</b>
-                    <small>{t.role}</small>
-                  </span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </>
-      )}
-    </Panel>
-  );
-}
-
-function Intel() {
-  return (
-    <Panel id="intel" eyebrow="Intel · About" title={site.name}>
-      <p className="lede">{site.intro}</p>
-      <div className="lb-prose">
-        {about.map((p) => (
-          <p key={p}>{p}</p>
+    <Panel id="skills" eyebrow={eyebrowFor("skills")} title="Technical skills">
+      <div className="slots">
+        {resume.skills.map((group) => (
+          <section key={group.id} className="slot" aria-label={group.label}>
+            <header>
+              <span className="slot-group">{group.label}</span>
+              <span className="slot-count">{group.items.length}</span>
+            </header>
+            <Chips items={group.items} />
+          </section>
         ))}
       </div>
-      {nowItems.length > 0 && (
-        <>
-          <h4 className="section-label">Current objectives</h4>
-          <ul className="objectives lb-now">
-            {nowItems.map((n) => (
-              <li key={n.label}>
-                <IconTarget width={15} height={15} />
-                <span>
-                  <b>{n.label}</b>
-                  {n.text}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-      <div className="row-btns">
-        {site.resumeHref && (
-          <a className="btn-amber" href={site.resumeHref} download onPointerEnter={hover} onClick={() => audio.click()}>
-            <IconDownload /> Download résumé
-          </a>
-        )}
-        <button
-          type="button"
-          className={site.resumeHref ? "btn-line" : "btn-amber"}
-          data-opener="intel-comms"
-          onPointerEnter={hover}
-          onClick={openComms}
-        >
-          <IconMail /> Open comms
-        </button>
-      </div>
     </Panel>
   );
 }
 
-export function CommsPanel() {
-  const open = useLobby((s) => s.comms);
-  if (!open) return null;
+function Education() {
+  const focus = useLobby((s) => s.focus);
   return (
-    <Panel id="comms" role="dialog" eyebrow="Comms · Contact" title="Open a channel" onClose={back} closeLabel="Close contact">
-      <p className="lede">The fastest way to reach me is email. I usually reply within a day.</p>
+    <Panel id="education" eyebrow={eyebrowFor("education")} title="Education">
+      <ol className="seasons">
+        {resume.education.map((e) => (
+          <li key={e.id} className={e.id === focus ? "on" : ""}>
+            <button
+              type="button"
+              className="season-head"
+              aria-pressed={e.id === focus}
+              aria-label={`${e.school}, ${e.location}. Show on the map`}
+              onPointerEnter={hover}
+              onClick={() => {
+                audio.click();
+                lobby.set({ focus: e.id });
+              }}
+            >
+              <span>
+                <b>{e.school}</b>
+                <small>
+                  {e.location} · {spanLabel(e.span)}
+                </small>
+              </span>
+              <IconPin width={16} height={16} />
+            </button>
+            <h3>{e.degree}</h3>
+            {e.coursework.length > 0 && (
+              <>
+                <h4>Coursework</h4>
+                <Chips items={e.coursework} />
+              </>
+            )}
+          </li>
+        ))}
+      </ol>
+    </Panel>
+  );
+}
+
+function Contact() {
+  return (
+    <Panel id="contact" eyebrow={eyebrowFor("contact")} title="Contact">
       <div className="channel">
         <span className="channel-label">Email</span>
-        <b className="channel-value">{site.email}</b>
+        <b className="channel-value">{resume.email}</b>
         <div className="row-btns">
-          <button type="button" className="btn-amber" onPointerEnter={hover} onClick={() => copyEmail(site.email)}>
+          <button type="button" className="btn-amber" onPointerEnter={hover} onClick={() => copyEmail(resume.email)}>
             <IconCopy /> Copy email
           </button>
-          <a className="btn-line" href={`mailto:${site.email}`} onPointerEnter={hover}>
+          <a className="btn-line" href={`mailto:${resume.email}`} onPointerEnter={hover}>
             <IconMail /> Send email
           </a>
         </div>
       </div>
       <div className="channels">
-        <a href={site.linkedin} target="_blank" rel="noreferrer" onPointerEnter={hover}>
+        <a href={resume.linkedin} target="_blank" rel="noreferrer" onPointerEnter={hover}>
           <IconLinkedin /> LinkedIn<span className="sr-only"> (opens in a new tab)</span>
         </a>
-        <a href={site.github} target="_blank" rel="noreferrer" onPointerEnter={hover}>
+        <a href={resume.github} target="_blank" rel="noreferrer" onPointerEnter={hover}>
           <IconGithub /> GitHub<span className="sr-only"> (opens in a new tab)</span>
         </a>
-        {site.resumeHref && (
-          <a href={site.resumeHref} download onPointerEnter={hover}>
-            <IconDownload /> Résumé (PDF)
-          </a>
-        )}
       </div>
-      <p className="fine">
-        {site.status}. Based in {site.location}, open to relocation and remote work.
-      </p>
+      <p className="fine">{resume.location}</p>
     </Panel>
   );
 }
 
 const SCREEN_PANELS: Partial<Record<ScreenId, () => ReactNode>> = {
-  missions: Missions,
-  arsenal: Arsenal,
-  loadout: Loadout,
-  career: Career,
-  intel: Intel,
+  experience: Experience,
+  projects: Projects,
+  skills: Skills,
+  education: Education,
+  contact: Contact,
 };
 
 /** Whether a screen has a panel (tabs point aria-controls at it). */
@@ -649,16 +422,13 @@ export const hasPanel = (id: ScreenId) => id in SCREEN_PANELS;
 
 export function ScreenPanel() {
   const screen = useLobby((s) => s.screen);
-  const comms = useLobby((s) => s.comms);
-  if (comms) return null;
   const C = SCREEN_PANELS[screen];
   return C ? <C key={screen} /> : null;
 }
 
 export function BackButton() {
   const screen = useLobby((s) => s.screen);
-  const comms = useLobby((s) => s.comms);
-  if (screen === "lobby" && !comms) return null;
+  if (screen === "home") return null;
   return (
     <button type="button" className="back-btn" onClick={back} onPointerEnter={hover}>
       <IconBack /> Back{" "}

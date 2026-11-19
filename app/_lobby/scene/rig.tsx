@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import type { ScreenId } from "@/content/lobby";
+import type { ScreenId } from "@/content/scene";
 import { lobby, pointer, type Phase } from "../store";
 import { landmarkTop } from "./geo";
 import { frameMarker, markerById, markers } from "./targets";
@@ -23,13 +23,13 @@ function midtown() {
 }
 
 const AUTHORED: Record<ScreenId, Shot> = {
-  lobby: { pos: V(0.85, 1.58, 2.7), look: V(0.55, 1.3, -8), fov: 40 },
-  missions: { pos: V(-2.15, 1.52, -1.75), look: V(...landmarkTop("oneWtc")).add(V(0, -30, 0)), fov: 26 },
-  arsenal: { pos: V(-1.0, 1.62, -2.1), look: midtown(), fov: 22 },
-  // Loadout and Intel sit in front of the operator's fixed three-quarter stance.
-  loadout: { pos: V(0.87, 1.3, 0.59), look: V(-0.55, 1.02, -2.5), fov: 36 },
-  career: { pos: V(5.4, 2.05, 3.3), look: V(-2.6, 1.1, -5.5), fov: 46 },
-  intel: { pos: V(1.21, 1.55, -0.45), look: V(-0.55, 1.28, -2.5), fov: 34 },
+  home: { pos: V(0.85, 1.58, 2.7), look: V(0.55, 1.3, -8), fov: 40 },
+  experience: { pos: V(-2.15, 1.52, -1.75), look: V(...landmarkTop("oneWtc")).add(V(0, -30, 0)), fov: 26 },
+  projects: { pos: V(-1.0, 1.62, -2.1), look: midtown(), fov: 22 },
+  // Skills and Contact sit in front of the operator's fixed three-quarter stance.
+  skills: { pos: V(0.87, 1.3, 0.59), look: V(-0.55, 1.02, -2.5), fov: 36 },
+  education: { pos: V(5.4, 2.05, 3.3), look: V(-2.6, 1.1, -5.5), fov: 46 },
+  contact: { pos: V(1.21, 1.55, -0.45), look: V(-0.55, 1.28, -2.5), fov: 34 },
 };
 
 /** Narrower than this, the lens widens so the horizontal view never shrinks. */
@@ -87,12 +87,13 @@ function fitShot(shot: Shot, screen: ScreenId): Shot {
 
 const SHOTS: Record<ScreenId, Shot> = {
   ...AUTHORED,
-  missions: fitShot(AUTHORED.missions, "missions"),
-  arsenal: fitShot(AUTHORED.arsenal, "arsenal"),
-  career: fitShot(AUTHORED.career, "career"),
+  experience: fitShot(AUTHORED.experience, "experience"),
+  projects: fitShot(AUTHORED.projects, "projects"),
+  education: fitShot(AUTHORED.education, "education"),
 };
 
-const FOCUS_FOV: Partial<Record<ScreenId, number>> = { career: 24 };
+/** Lens for a focused horizon pin (off-map places have no tower to frame). */
+const HORIZON_FOV = 24;
 
 // Drone fly-in: from over the Hudson, up over the rail, round behind the operator.
 const INTRO = new THREE.CatmullRomCurve3([
@@ -100,7 +101,7 @@ const INTRO = new THREE.CatmullRomCurve3([
   V(6.4, 2.8, -15),
   V(4.7, 2.5, -6.2),
   V(3.3, 1.95, -0.8),
-  SHOTS.lobby.pos.clone(),
+  SHOTS.home.pos.clone(),
 ]);
 const INTRO_SECONDS = 5.6;
 
@@ -124,19 +125,19 @@ function restingShot(
   let fov = shot.fov;
   const m = markerById(focus);
   if (m && m.screen === screen) {
-    if (screen !== "career") {
+    if (m.landmark) {
       fov = frameMarker(m, shot.pos, outLook);
     } else {
       outLook.copy(m.position);
       outLook.y -= 20;
-      fov = FOCUS_FOV.career ?? fov;
+      fov = HORIZON_FOV;
     }
   }
   // Narrow screens: widen the lens so the skyline still fits.
   if (aspect < MIN_ASPECT) {
     const half = Math.tan(THREE.MathUtils.degToRad(fov / 2)) * (MIN_ASPECT / aspect);
     fov = Math.min(aspect < 0.8 ? 62 : 74, THREE.MathUtils.radToDeg(2 * Math.atan(half)));
-    if (screen === "lobby") {
+    if (screen === "home") {
       // Portrait: you on the left, downtown on the right, skyline above the controls.
       outPos.set(-0.2, 1.55, aspect < 0.8 ? 3.0 : 3.2);
       outLook.set(aspect < 0.8 ? 1.25 : 0.9, aspect < 0.8 ? 0.6 : 0.95, -8);
@@ -290,9 +291,9 @@ export default function CameraRig() {
       c.intro = reduced ? 1 : Math.min(1, c.intro + step / INTRO_SECONDS);
       const k = ease(c.intro);
       // End exactly where the lobby will rest on this screen, so there's no second move.
-      const endFov = restingShot("lobby", null, aspect, tmp.endPos, tmp.endLook);
+      const endFov = restingShot("home", null, aspect, tmp.endPos, tmp.endLook);
       INTRO.getPointAt(k, tmp.pos);
-      tmp.pos.addScaledVector(tmp.off.subVectors(tmp.endPos, SHOTS.lobby.pos), THREE.MathUtils.smoothstep(k, 0.3, 1));
+      tmp.pos.addScaledVector(tmp.off.subVectors(tmp.endPos, SHOTS.home.pos), THREE.MathUtils.smoothstep(k, 0.3, 1));
       tmp.pos.addScaledVector(c.introOff, 1 - THREE.MathUtils.smoothstep(k, 0, 0.35));
       // From the title's aim to the operator's head, then out to the skyline.
       tmp.look.lerpVectors(TITLE.look, HEAD, THREE.MathUtils.smoothstep(k, 0, 0.3));
@@ -324,8 +325,8 @@ export default function CameraRig() {
         c.orbit = THREE.MathUtils.damp(c.orbit, 0, 1.2, dt);
         c.orbitPitch = THREE.MathUtils.damp(c.orbitPitch, 0, 1.2, dt);
       }
-      if (s.screen === "lobby" || s.screen === "loadout" || s.screen === "intel") {
-        const pivot = s.screen === "lobby" ? HEAD : tmp.look;
+      if (s.screen === "home" || s.screen === "skills" || s.screen === "contact") {
+        const pivot = s.screen === "home" ? HEAD : tmp.look;
         tmp.off.subVectors(tmp.pos, pivot);
         tmp.off.applyAxisAngle(UP, c.orbit);
         tmp.off.y += c.orbitPitch * tmp.off.length();
@@ -341,7 +342,7 @@ export default function CameraRig() {
         if (!s.touch) {
           tmp.fwd.subVectors(tmp.look, tmp.pos).normalize();
           tmp.right.crossVectors(tmp.fwd, UP).normalize();
-          const amt = s.screen === "missions" || s.screen === "arsenal" ? 0.04 : 0.13;
+          const amt = s.screen === "experience" || s.screen === "projects" ? 0.04 : 0.13;
           tmp.pos.addScaledVector(tmp.right, pointer.x * amt);
           tmp.pos.y += pointer.y * amt * 0.45;
         }

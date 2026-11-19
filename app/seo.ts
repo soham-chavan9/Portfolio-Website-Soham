@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { education } from "@/content/portfolio";
+import { resume } from "@/content/resume";
 import { site } from "@/content/site";
 
 export const defaultTitle = `${site.name}, ${site.headline}`;
@@ -40,32 +40,18 @@ export function socialMetadata({
   };
 }
 
-// "M.S. in Information Systems, Northeastern University" -> "Northeastern University"
-function schoolOf(degree: string): string | null {
-  const at = degree.lastIndexOf(", ");
-  return at === -1 ? null : degree.slice(at + 2).trim() || null;
-}
-
 export function personJsonLd() {
-  const schools = [
-    ...new Set(
-      education
-        .map((item) => schoolOf(item.degree))
-        .filter((name): name is string => Boolean(name))
-    ),
-  ];
-
   const data = {
     "@context": "https://schema.org",
     "@type": "Person",
-    name: site.name,
-    jobTitle: site.navHeadline,
+    name: resume.name,
+    jobTitle: resume.headline,
     description: site.description,
     url: site.url,
     image: new URL(site.profileImage, site.url).toString(),
-    email: `mailto:${site.email}`,
-    sameAs: [site.github, site.linkedin].filter(Boolean),
-    alumniOf: schools.map((name) => ({ "@type": "CollegeOrUniversity", name })),
+    address: { "@type": "PostalAddress", addressLocality: "Boston", addressRegion: "MA", addressCountry: "US" },
+    sameAs: [resume.github, resume.linkedin],
+    alumniOf: resume.education.map((e) => ({ "@type": "CollegeOrUniversity", name: e.school })),
   };
 
   // Escape "<" so no string in the payload can close the script tag early.
