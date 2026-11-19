@@ -11,10 +11,14 @@ import { lobby, pointer } from "../store";
 // was fitted to the photo's silhouette and the photo resampled so his face
 // lands on the mesh's face: centered on the eyes and jaw, with each side of
 // the head stretched to its own edge (soham-albedo.webp is that resampled
-// photo, with the backdrop filled in from the nearest edge colors). The model has no rig,
-// so every movement is a smooth deformation field in the vertex shader: weight
-// shifts between the legs with the feet planted, the spine twists and leans,
-// the chest and shoulders breathe, and the head turns on the neck.
+// photo, with the backdrop filled in from the nearest edge colors). In the
+// full-length photo his face is only ~90 px wide, so the head has its own
+// texture at 4x (soham-face.webp): the same face, with fine detail (eyes,
+// brows, lips) carried over from the high-res headshot on the classic page,
+// warped onto the photo's facial landmarks. The model has no rig, so every
+// movement is a smooth deformation field in the vertex shader: weight shifts
+// between the legs with the feet planted, the spine twists and leans, the
+// chest and shoulders breathe, and the head turns on the neck.
 //
 // Anatomy measured from the mesh (height = 1, facing +z): shoulders top out
 // ~0.835, the chin's underside sits at 0.862-0.866, the nose tip at 0.911, and
@@ -24,15 +28,20 @@ import { lobby, pointer } from "../store";
 
 const MODEL_URL = "/operator/soham.glb";
 const ALBEDO_URL = "/operator/soham-albedo.webp";
+const FACE_URL = "/operator/soham-face.webp";
 const HEIGHT = 1.82;
 /** Model-space width the photo texture spans, centered on the head's axis. */
 const PROJ_WIDTH = 0.3984;
+/** Model-space rect (x, y, width, height) the head texture covers. */
+const FACE_RECT = new THREE.Vector4(-0.070306, 0.833984, 0.140612, 0.166016);
 /** Fixed stance: three-quarters to the lobby camera. Shots are framed around it. */
 export const OPERATOR_YAW = 0.55;
 
 type U = { value: number };
 type Uniforms = {
   uAlbedo: { value: THREE.Texture };
+  uFace: { value: THREE.Texture };
+  uFaceRect: { value: THREE.Vector4 };
   uWidth: U;
   uHeadYaw: U;
   uHeadPitch: U;
@@ -83,9 +92,11 @@ const deformGLSL = /* glsl */ `
   }
 `;
 
-function createOperatorMaterial(albedo: THREE.Texture) {
+function createOperatorMaterial(albedo: THREE.Texture, face: THREE.Texture) {
   const uniforms: Uniforms = {
     uAlbedo: { value: albedo },
+    uFace: { value: face },
+    uFaceRect: { value: FACE_RECT },
     uWidth: { value: PROJ_WIDTH },
     uHeadYaw: { value: 0 },
     uHeadPitch: { value: 0 },
@@ -105,7 +116,7 @@ function createOperatorMaterial(albedo: THREE.Texture) {
   };
   const material = new THREE.MeshStandardMaterial({ roughness: 0.74, metalness: 0, envMapIntensity: 0.5 });
   material.userData.uniforms = uniforms;
-  material.customProgramCacheKey = () => "operator-projected-v6";
+  material.customProgramCacheKey = () => "operator-projected-v7";
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
@@ -145,6 +156,8 @@ function createOperatorMaterial(albedo: THREE.Texture) {
         "#include <common>",
         /* glsl */ `#include <common>
         uniform sampler2D uAlbedo;
+        uniform sampler2D uFace;
+        uniform vec4 uFaceRect;
         uniform float uWidth;
         uniform vec3 uSuit;
         uniform vec3 uHair;
@@ -159,7 +172,11 @@ function createOperatorMaterial(albedo: THREE.Texture) {
         "#include <map_fragment>",
         /* glsl */ `
         vec2 projUv = vec2(0.5 + vObjPos.x / uWidth, clamp(vObjPos.y, 0.001, 0.999));
-        vec3 photo = texture2D(uAlbedo, projUv).rgb;
+        // The head reads the sharper head texture; it holds the same image as
+        // the albedo at its edges, so the switch doesn't show.
+        vec2 faceUv = (vObjPos.xy - uFaceRect.xy) / uFaceRect.zw;
+        float inFace = step(0.0, faceUv.x) * step(faceUv.x, 1.0) * step(0.0, faceUv.y) * step(faceUv.y, 1.0);
+        vec3 photo = mix(texture2D(uAlbedo, projUv).rgb, texture2D(uFace, faceUv).rgb, inFace);
         float facing = normalize(vObjNormal).z;
         float head = smoothstep(0.85, 0.866, vObjPos.y);
 
@@ -233,7 +250,7 @@ const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 
 function Model({ position }: { position: [number, number, number] }) {
   const gltf = useLoader(GLTFLoader, MODEL_URL);
-  const albedo = useLoader(THREE.TextureLoader, ALBEDO_URL);
+  const [albedo, face] = useLoader(THREE.TextureLoader, [ALBEDO_URL, FACE_URL]);
   const camera = useThree((s) => s.camera);
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
@@ -254,11 +271,13 @@ function Model({ position }: { position: [number, number, number] }) {
   }, [gltf]);
 
   const material = useMemo(() => {
-    albedo.colorSpace = THREE.SRGBColorSpace;
-    albedo.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy());
-    albedo.needsUpdate = true;
-    return createOperatorMaterial(albedo);
-  }, [albedo, gl]);
+    for (const t of [albedo, face]) {
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy());
+      t.needsUpdate = true;
+    }
+    return createOperatorMaterial(albedo, face);
+  }, [albedo, face, gl]);
   useEffect(() => () => material.dispose(), [material]);
 
   // Compile the operator's shader (in parallel where the GPU driver allows)
