@@ -114,9 +114,11 @@ export default async function WriteupPage({
         <a className="draw" href={site.linkedin}>
           LinkedIn
         </a>
-        <a className="draw" href={site.resumeHref} download>
-          Resume
-        </a>
+        {site.resumeHref && (
+          <a className="draw" href={site.resumeHref} download>
+            Resume
+          </a>
+        )}
         <Link className="draw" href="/classic">
           Classic view
         </Link>

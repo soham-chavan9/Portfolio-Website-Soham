@@ -331,10 +331,18 @@ function Banners() {
           </dl>
         )}
         <div className="brief-cta">
-          <a className="brief-primary" href={site.resumeHref} download onPointerEnter={hover} onClick={() => audio.chime()}>
-            <IconDownload width={15} height={15} /> Résumé
-          </a>
-          <button type="button" className="brief-secondary" data-opener="banner-comms" onPointerEnter={hover} onClick={openComms}>
+          {site.resumeHref && (
+            <a className="brief-primary" href={site.resumeHref} download onPointerEnter={hover} onClick={() => audio.chime()}>
+              <IconDownload width={15} height={15} /> Résumé
+            </a>
+          )}
+          <button
+            type="button"
+            className={site.resumeHref ? "brief-secondary" : "brief-primary"}
+            data-opener="banner-comms"
+            onPointerEnter={hover}
+            onClick={openComms}
+          >
             Contact <IconArrow width={14} height={14} />
           </button>
         </div>
@@ -394,9 +402,11 @@ function ModeCard() {
         <button type="button" data-opener="alt-career" onPointerEnter={hover} onClick={() => go("career")}>
           Career
         </button>
-        <a className="show-mobile" href={site.resumeHref} download onClick={() => audio.chime()}>
-          Résumé
-        </a>
+        {site.resumeHref && (
+          <a className="show-mobile" href={site.resumeHref} download onClick={() => audio.chime()}>
+            Résumé
+          </a>
+        )}
         <button type="button" className="show-mobile" data-opener="alt-comms" onClick={openComms}>
           Comms
         </button>

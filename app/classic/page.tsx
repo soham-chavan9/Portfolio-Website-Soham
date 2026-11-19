@@ -105,10 +105,12 @@ export default function Classic() {
             <h1 id="hero-title">{site.headline}</h1>
             <p className="hero-intro">{site.intro}</p>
             <div className="btns">
-              <a className="btn primary" href={site.resumeHref} download>
-                Download resume (PDF)
-              </a>
-              <a className="btn" href="#work">
+              {site.resumeHref && (
+                <a className="btn primary" href={site.resumeHref} download>
+                  Download resume (PDF)
+                </a>
+              )}
+              <a className={site.resumeHref ? "btn" : "btn primary"} href="#work">
                 See my work
               </a>
               <a className="btn" href={site.linkedin}>
@@ -245,7 +247,19 @@ export default function Classic() {
                           <li key={item}>{item}</li>
                         ))}
                       </ul>
-                      {/* TODO(soham): add repo links when public */}
+                      {project.repo && (
+                        <p className="read-link">
+                          <a
+                            className="draw"
+                            href={project.repo}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            View code on GitHub
+                            <span className="sr-only">: {project.title}</span>
+                          </a>
+                        </p>
+                      )}
                     </div>
                     <div className="shot">
                       <img
@@ -379,7 +393,7 @@ export default function Classic() {
             email={site.email}
             github={site.github}
             linkedin={site.linkedin}
-            resumeHref={site.resumeHref}
+            resumeHref={site.resumeHref ?? undefined}
           />
         </section>
 
@@ -393,9 +407,11 @@ export default function Classic() {
           <a className="draw" href={site.linkedin}>
             LinkedIn
           </a>
-          <a className="draw" href={site.resumeHref} download>
-            Resume
-          </a>
+          {site.resumeHref && (
+            <a className="draw" href={site.resumeHref} download>
+              Resume
+            </a>
+          )}
           <span className="spacer" />
           <span className="quiet">{site.location}</span>
         </footer>

@@ -16,7 +16,7 @@ export const shipped: ShippedItem[] = [
     when: "Jan 2026 to Jun 2026",
     where: "OurFreedom.ai",
     summary:
-      "A Swift bridge to Apple's SCSensitivityAnalyzer with an AWS Rekognition fallback, private S3 staging, magic-byte validation, and SHA-256 result caching across five upload surfaces.",
+      "A Swift bridge to Apple's SCSensitivityAnalyzer screens most images on the device, with an AWS Rekognition fallback that keeps cloud costs low, private S3 staging, magic-byte validation, and SHA-256 result caching across five upload surfaces.",
     stack: ["React Native", "Swift", "NestJS", "AWS Rekognition", "S3"],
     platforms: ["ios", "android", "server"],
     slug: "on-device-moderation",
@@ -26,7 +26,7 @@ export const shipped: ShippedItem[] = [
     when: "Jan 2026 to Jun 2026",
     where: "OurFreedom.ai",
     summary:
-      "Expo EAS over-the-air updates plus native version gating driven by backend thresholds, with channel-pinned publishing, runtime fingerprinting, and 19 Jest unit tests.",
+      "Expo EAS over-the-air updates plus native version gating driven by backend thresholds, cutting small-fix delivery from Apple's roughly 48-hour review window to about 2 hours, with 19 Jest unit tests.",
     stack: ["React Native", "Expo", "EAS", "Play Core", "Jest"],
     platforms: ["ios", "android"],
     slug: "release-pipeline",
@@ -36,7 +36,7 @@ export const shipped: ShippedItem[] = [
     when: "Jan 2026 to Jun 2026",
     where: "OurFreedom.ai",
     summary:
-      "A Zustand feed store with cursor pagination, infinite scroll, and optimistic updates, plus privacy-safe tracking of seven interaction types with per-post attribution.",
+      "A Zustand feed store with cursor pagination, infinite scroll, and optimistic updates that raised time in app about 5%, plus privacy-safe tracking of seven interaction types with per-post attribution.",
     stack: ["React Native", "Zustand", "Recombee", "TypeScript"],
     platforms: ["ios", "android"],
     slug: "recommendation-feed",
@@ -52,21 +52,21 @@ export const shipped: ShippedItem[] = [
     slug: "direct-messaging",
   },
   {
-    title: "Lumina, AI Compliance Q&A Assistant",
+    title: "Lumina, HIPAA Privacy Desk",
     when: "Sep 2025 to Dec 2025",
     where: "Northeastern",
     summary:
-      "An end-to-end RAG pipeline with PDF upload, chunking, embeddings, FAISS vector search, top-k retrieval, and source-cited answers.",
-    stack: ["Next.js", "TypeScript", "FastAPI", "LangChain", "FAISS", "GPT-4o-mini"],
-    platforms: ["web"],
+      "A cited RAG assistant over HIPAA policy PDFs with four automated compliance workflows and an on-premise PHI detector at 100% recall, deployed with Docker and Vercel and 77 tests at 82% coverage.",
+    stack: ["Python", "FastAPI", "LangChain", "FAISS", "Ollama", "Next.js", "Docker"],
+    platforms: ["web", "server"],
   },
   {
-    title: "Fund Flow, Full-Stack Personal Finance App",
-    when: "Aug 2024 to Dec 2024",
+    title: "FundFlow, Personal Finance Tracker",
+    when: "Aug 2024 to Present",
     where: "Northeastern",
     summary:
-      "Expense, budget, and shopping-list workflows with ECharts dashboards, a Gemini insights assistant, real-time collaboration, EmailJS alerts, and i18next.",
-    stack: ["React", "Next.js", "Redux", "Express", "MongoDB", "Gemini"],
+      "Pace-based budgets, JWT-scoped MongoDB queries, and a streaming Gemini assistant in 3 languages, rebuilt in Next.js 16 and covered by 121 Vitest tests and Playwright security tests.",
+    stack: ["TypeScript", "Next.js", "MongoDB", "Gemini", "Vitest", "Playwright"],
     platforms: ["web"],
   },
   {
@@ -82,8 +82,8 @@ export const shipped: ShippedItem[] = [
     when: "Jun 2023 to Jul 2024",
     where: "ACN Fiber, Mumbai",
     summary:
-      "Express.js and TypeScript REST APIs moving real-time customer data for 10,000+ daily active users, with Zod-validated contracts and Winston-logged error handling.",
-    stack: ["Express.js", "TypeScript", "Axios", "Zod", "Winston"],
+      "Express.js and TypeScript REST APIs moving real-time subscriber and billing data for 10,000+ daily active users, idempotent payment webhooks that ended duplicate charges, and a serviceability API that cut failed install visits by 20%.",
+    stack: ["Express.js", "TypeScript", "Zod", "Winston"],
     platforms: ["server"],
   },
 ];

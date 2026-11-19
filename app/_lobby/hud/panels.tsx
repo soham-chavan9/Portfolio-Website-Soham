@@ -380,6 +380,11 @@ function Arsenal() {
           <h4>Built</h4>
           <p>{p.built}</p>
           <Chips items={p.stack} />
+          {p.repo && (
+            <a className="btn-line" href={p.repo} target="_blank" rel="noreferrer" onPointerEnter={hover}>
+              View code on GitHub<span className="sr-only">: {p.title}</span>
+            </a>
+          )}
         </article>
       )}
 
@@ -574,10 +579,18 @@ function Intel() {
         </>
       )}
       <div className="row-btns">
-        <a className="btn-amber" href={site.resumeHref} download onPointerEnter={hover} onClick={() => audio.click()}>
-          <IconDownload /> Download résumé
-        </a>
-        <button type="button" className="btn-line" data-opener="intel-comms" onPointerEnter={hover} onClick={openComms}>
+        {site.resumeHref && (
+          <a className="btn-amber" href={site.resumeHref} download onPointerEnter={hover} onClick={() => audio.click()}>
+            <IconDownload /> Download résumé
+          </a>
+        )}
+        <button
+          type="button"
+          className={site.resumeHref ? "btn-line" : "btn-amber"}
+          data-opener="intel-comms"
+          onPointerEnter={hover}
+          onClick={openComms}
+        >
           <IconMail /> Open comms
         </button>
       </div>
@@ -610,9 +623,11 @@ export function CommsPanel() {
         <a href={site.github} target="_blank" rel="noreferrer" onPointerEnter={hover}>
           <IconGithub /> GitHub<span className="sr-only"> (opens in a new tab)</span>
         </a>
-        <a href={site.resumeHref} download onPointerEnter={hover}>
-          <IconDownload /> Résumé (PDF)
-        </a>
+        {site.resumeHref && (
+          <a href={site.resumeHref} download onPointerEnter={hover}>
+            <IconDownload /> Résumé (PDF)
+          </a>
+        )}
       </div>
       <p className="fine">
         {site.status}. Based in {site.location}, open to relocation and remote work.

@@ -122,8 +122,10 @@ export const careerPins = [
 export const loadoutSlots = [
   { slot: "Primary", groupIndex: 0 },
   { slot: "Secondary", groupIndex: 1 },
-  { slot: "Perks", groupIndex: 2 },
-  { slot: "Support", groupIndex: 3 },
+  { slot: "Heavy", groupIndex: 2 },
+  { slot: "Perks", groupIndex: 3 },
+  { slot: "Support", groupIndex: 4 },
+  { slot: "Gear", groupIndex: 5 },
 ];
 
 export const bootLines = [

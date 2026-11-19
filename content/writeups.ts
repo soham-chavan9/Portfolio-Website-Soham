@@ -23,7 +23,7 @@ export const writeups: Writeup[] = [
     deck:
       "Store binaries and over-the-air updates for a production React Native app, with runtime fingerprints and backend version checks keeping users on safe builds.",
     meta: {
-      role: "Full-stack engineer, mobile and backend",
+      role: "Software engineering co-op, mobile and backend",
       when: "Jan 2026 to Jun 2026",
       surface: "iOS, Android",
       stack: "React Native, Expo, EAS, Play Core, Jest",
@@ -55,7 +55,7 @@ export const writeups: Writeup[] = [
       {
         kind: "p",
         text:
-          "The team could route each change through the right path, keep production bundles away from local environment values, and move users off outdated builds without a scramble. I owned the App Store and Google Play submissions, with no release rejections.",
+          "Small fixes now reached users in about 2 hours instead of waiting out Apple's roughly 48-hour review window. The team could route each change through the right path, keep production bundles away from local environment values, and move users off outdated builds without a scramble. I owned the App Store and Google Play submissions, with no release rejections.",
       },
     ],
   },
@@ -65,7 +65,7 @@ export const writeups: Writeup[] = [
     deck:
       "The client for a Recombee-powered recommendation feed, with paging that never shows a post twice and event tracking that counts every interaction exactly once.",
     meta: {
-      role: "Full-stack engineer, mobile and backend",
+      role: "Software engineering co-op, mobile and backend",
       when: "Jan 2026 to Jun 2026",
       surface: "iOS, Android",
       stack: "React Native, Zustand, Recombee, TypeScript",
@@ -92,7 +92,7 @@ export const writeups: Writeup[] = [
       {
         kind: "p",
         text:
-          "Recommendations trained on clean, deduplicated signals, and tracking stayed privacy-safe across account switches.",
+          "Time in app rose about 5% after the feed launched. Recommendations trained on clean, deduplicated signals, and tracking stayed privacy-safe across account switches.",
       },
     ],
   },
@@ -102,7 +102,7 @@ export const writeups: Writeup[] = [
     deck:
       "Screening sensitive images on the device first, with server-side fallback and hash-based verdict caching for a platform where what got through mattered.",
     meta: {
-      role: "Full-stack engineer, mobile and backend",
+      role: "Software engineering co-op, mobile and backend",
       when: "Jan 2026 to Jun 2026",
       surface: "iOS, Android, server",
       stack: "React Native, Swift, NestJS, AWS Rekognition, S3",
@@ -129,7 +129,7 @@ export const writeups: Writeup[] = [
       {
         kind: "p",
         text:
-          "The system made moderation faster on supported devices, reduced duplicate scanning, and kept a reliable server-side path for devices or cases where on-device analysis could not produce a confident result.",
+          "Most images were screened on the device, which kept cloud moderation costs low. The system made moderation faster on supported devices, reduced duplicate scanning, and kept a reliable server-side path for devices or cases where on-device analysis could not produce a confident result.",
       },
     ],
   },
@@ -139,7 +139,7 @@ export const writeups: Writeup[] = [
     deck:
       "A messaging subsystem with unread state, reporting, blocking, search, and group conversations designed as first-class product behavior.",
     meta: {
-      role: "Full-stack engineer, mobile and backend",
+      role: "Software engineering co-op, mobile and backend",
       when: "Jan 2026 to Jun 2026",
       surface: "iOS, Android, server",
       stack: "React Native, NestJS, MongoDB",

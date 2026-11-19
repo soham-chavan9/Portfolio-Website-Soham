@@ -26,11 +26,12 @@ export const featuredWork = {
   summary:
     "At OurFreedom.ai, I worked on a paid platform that kept families connected to incarcerated loved ones. I owned features end to end across the mobile app and the backend, and designed and shipped these four systems.",
   role:
-    "Full-stack engineer on a React Native and Expo app for iOS and Android and a NestJS and MongoDB backend of about 40 modules and 20 contributors. I shipped 110+ commits, reviewed PRs, and coordinated releases in three-week sprints.",
+    "Software engineering co-op on a React Native and Expo app for iOS and Android with 1,000+ downloads, and a NestJS and MongoDB backend of about 40 modules and 20 contributors. I shipped 110+ commits and coordinated releases in three-week sprints.",
   facts: [
-    { label: "Role", value: "Full-Stack Software Engineer" },
+    { label: "Role", value: "Software Engineering Co-op" },
     { label: "Timeline", value: "Jan 2026 to Jun 2026" },
     { label: "Team", value: "About 20 contributors" },
+    { label: "Downloads", value: "1,000+" },
     { label: "Stack", value: "React Native, Expo, NestJS, MongoDB, Swift" },
   ] satisfies Fact[],
   systems: [
@@ -41,6 +42,7 @@ export const featuredWork = {
       intro:
         "Some fixes could ship over the air in minutes, and others needed a new store build. I designed a two-track update system so each change took the right path, and so outdated apps were handled safely.",
       bullets: [
+        "Small fixes reached users in about 2 hours instead of waiting out Apple's roughly 48-hour review window.",
         "Expo EAS over-the-air updates, channel-pinned and runtime-fingerprinted across dev, preview, TestFlight, and production.",
         "Native version gating with Google Play Core in-app updates and App Store redirects, driven by backend thresholds.",
         "19 Jest unit tests covering semantic-version logic and malformed API responses.",
@@ -80,6 +82,7 @@ export const featuredWork = {
       intro:
         "The app's For You feed was powered by Recombee. I built the client: the store behind the feed, its paging, and the event tracking that fed every interaction back into recommendations.",
       bullets: [
+        "Time in app rose about 5% after the feed launched.",
         "A Zustand store with cursor pagination, infinite scroll, pull-to-refresh, duplicate filtering, and optimistic updates.",
         "Seven interaction types instrumented, each with per-post recommendation attribution.",
         "300 ms debouncing, UUID idempotency keys, and per-session deduplication, so each event counted once.",
@@ -89,6 +92,7 @@ export const featuredWork = {
         { label: "Recommender", value: "Recombee" },
         { label: "State", value: "Zustand" },
         { label: "Paging", value: "Cursor-based" },
+        { label: "Time in app", value: "Up about 5%" },
         { label: "Interaction types", value: "7" },
         { label: "Debounce", value: "300 ms" },
         { label: "Dedup", value: "UUID idempotency keys" },
@@ -102,7 +106,7 @@ export const featuredWork = {
         "Families shared photos across five upload surfaces. Every image needed screening, but sending all of them to the cloud was slow, costly, and worse for privacy.",
       bullets: [
         "A Swift bridge to Apple's on-device SCSensitivityAnalyzer, so most checks never left the phone.",
-        "An AWS Rekognition fallback with private S3 staging and magic-byte file validation.",
+        "An AWS Rekognition fallback with private S3 staging and magic-byte file validation, used only when needed to keep cloud costs low.",
         "SHA-256 result caching, so the same image was never scanned twice.",
         "Blur and warn flows across all five upload surfaces.",
       ],
@@ -160,13 +164,16 @@ export const featuredWork = {
 export const experience = [
   {
     when: "Jan 2026 to Jun 2026, New York City",
-    title: "Full-Stack Software Engineer, Mobile and Backend",
+    title: "Software Engineering Co-op",
     org: "OurFreedom.ai",
     points: [
-      "Owned features end to end across a React Native and Expo app for iOS and Android and a NestJS and MongoDB backend of about 40 modules and 20 contributors.",
-      "Shipped 110+ commits, reviewed PRs, and coordinated releases in three-week sprints through GitHub Actions and Vercel.",
-      "Built the client for a Recombee-powered For You feed, a two-track OTA and native update system, and hybrid on-device and cloud image moderation.",
-      "Owned App Store and Google Play submissions with no release rejections, and hardened Apple Sign-In, Stripe, and AdMob and ATT setup.",
+      "Owned features end to end across a React Native and Expo app for iOS and Android with 1,000+ downloads, and a NestJS and MongoDB backend of about 40 modules and 20 contributors.",
+      "Shipped 110+ commits and coordinated three-week sprint releases.",
+      "Built the For You feed on Recombee recommendations, raising time in app about 5%, and tracked seven interaction types with per-post attribution.",
+      "Designed a two-track OTA and native update system that cut small-fix delivery from Apple's roughly 48-hour review window to about 2 hours, covered by 19 Jest tests.",
+      "Built hybrid image moderation across five upload surfaces: on-device Apple analysis for most images, with an AWS Rekognition fallback that kept cloud costs low.",
+      "Shipped group chats, typing indicators, blocking, search, and reporting for direct messaging.",
+      "Owned App Store and Google Play submissions with no release rejections, built a deny-by-default age gate, and hardened Apple Sign-In, Stripe, and AdMob and ATT setup.",
     ],
   },
   {
@@ -174,7 +181,7 @@ export const experience = [
     title: "M.S. in Information Systems",
     org: "Northeastern University",
     points: [
-      "Program Structures and Algorithms, System Design, Database Management, Software Quality Control and Management, Web Development, Prompt Engineering for Generative AI, UI/UX.",
+      "Program Structures and Algorithms, System Design, Database Management, Prompt Engineering for Generative AI.",
     ],
   },
   {
@@ -182,9 +189,10 @@ export const experience = [
     title: "Software Developer",
     org: "ACN Fiber Pvt Ltd",
     points: [
-      "Built Express.js and TypeScript REST APIs with Axios that moved real-time customer data across third-party telecom infrastructure for 10,000+ daily active users.",
-      "Added Zod request and response validation, standardizing data contracts across endpoints and stopping runtime failures from malformed vendor payloads.",
-      "Built centralized error-handling middleware with Winston logging, speeding up production diagnostics and cutting on-call triage time.",
+      "Built Express.js and TypeScript REST APIs with retry and timeout controls, moving real-time subscriber and billing data across third-party telecom and IPTV systems for 10,000+ daily active users.",
+      "Made payment webhooks idempotent and tied provisioning to billing status, ending about 30 to 40 duplicate-charge complaints a month and preventing half-provisioned accounts.",
+      "Launched a building and PIN-code serviceability API covering about 1,200 South Mumbai buildings, which stopped sales from booking unserviceable installs and cut failed install visits by 20%.",
+      "Built centralized error-handling middleware with Winston structured logging and Zod validation on every endpoint, so on-call engineers could diagnose production issues from logs alone.",
     ],
   },
   {
@@ -200,29 +208,55 @@ export const experience = [
 
 export const projects = [
   {
-    title: "Lumina, AI Compliance Q&A Assistant",
+    title: "Lumina, HIPAA Privacy Desk",
     role: "AI Engineer and Full-Stack Developer",
     timeline: "Sep 2025 to Dec 2025",
     team: "3",
     problem:
-      "Compliance teams need answers they can trust, with the source for every claim.",
+      "Privacy officers need answers about HIPAA policy they can trust, without patient data ever reaching an LLM.",
     built:
-      "An end-to-end RAG pipeline: PDF upload, chunking, embeddings, FAISS vector search, top-k retrieval, and source-cited answers, tuned with cosine-similarity normalization, fuzzy matching, and context-length caps.",
-    stack: ["Next.js", "TypeScript", "FastAPI", "LangChain", "FAISS", "GPT-4o-mini"],
+      "A RAG assistant over HIPAA policy PDFs with citations and confidence scores, plus four automated compliance workflows, including a 60-day breach notification clock, BAA vendor screening, and policy gap scans. An on-premise PHI detector covers all 18 Safe Harbor identifiers at 100% recall (54/54) with zero false positives. API-key auth, per-tenant index isolation, rate limiting, prompt-injection guards, and OpenAI-to-Ollama failover, with CI running 77 tests at 82% coverage.",
+    stack: [
+      "Python",
+      "FastAPI",
+      "LangChain",
+      "FAISS",
+      "GPT-4o-mini",
+      "Ollama",
+      "Next.js",
+      "TypeScript",
+      "Docker",
+      "GitHub Actions",
+    ],
+    repo: "https://github.com/soham-chavan9/lumina",
     image: "/lumina.png",
     alt: "Lumina compliance assistant showing a cited answer",
   },
   {
-    title: "Fund Flow, Full-Stack Personal Finance App",
+    title: "FundFlow, Personal Finance Tracker",
     role: "Full-Stack Engineer",
-    timeline: "Aug 2024 to Dec 2024",
-    team: "2",
-    problem: "People lacked multilingual, AI-driven insight into their spending.",
+    timeline: "Aug 2024 to Present",
+    team: "4 for v1, then solo rebuild",
+    problem:
+      "People need budgets that warn them before they overspend, and a finance app has to keep every user's data sealed off from everyone else's.",
     built:
-      "Expense, budget, and shopping-list workflows on RESTful CRUD services and MongoDB, with ECharts dashboards, a Gemini insights assistant, real-time collaboration, EmailJS alerts, and i18next.",
-    stack: ["React", "Next.js", "Redux", "Express", "MongoDB", "Gemini", "ECharts", "i18next"],
+      "Budget and expense REST APIs and a 9-page Next.js and Redux frontend for v1 with a four-person Northeastern team. I then rebuilt it alone in Next.js 16 and TypeScript, closing auth gaps on 12 endpoints by scoping every MongoDB query to a signed JWT session. It has pace-based budgets, integer-cent money math, monthly and yearly reports, injection-safe CSV export, and a streaming Gemini assistant that answers from the last 3 months of data in 3 languages. Tested with 121 Vitest unit tests and Playwright end-to-end security tests in GitHub Actions.",
+    stack: [
+      "TypeScript",
+      "Next.js",
+      "React",
+      "Node.js",
+      "Express",
+      "MongoDB",
+      "Gemini",
+      "Redux",
+      "Vitest",
+      "Playwright",
+      "GitHub Actions",
+    ],
+    repo: "https://github.com/soham-chavan9/FundFlow",
     image: "/fundflow.png",
-    alt: "Fund Flow spending dashboard",
+    alt: "FundFlow spending dashboard",
   },
   {
     // TODO(soham): confirm spelling, TaskTreak vs TaskTrek
@@ -274,18 +308,19 @@ export const skillGroups = [
     items: ["TypeScript", "JavaScript", "Python", "Swift", "Java", "C++", "SQL"],
   },
   {
-    label: "Mobile and web",
+    label: "Frontend and mobile",
     items: [
-      "React Native",
-      "Expo and EAS",
-      "OTA updates",
-      "Swift native modules",
-      "Play Core in-app updates",
       "React",
+      "React Native",
       "Next.js",
-      "Redux",
+      "Expo, EAS, and OTA updates",
+      "Redux Toolkit",
       "Zustand",
+      "React Query",
       "Tailwind CSS",
+      "HTML and CSS",
+      "iOS Swift native modules",
+      "Android Play Core",
     ],
   },
   {
@@ -293,31 +328,56 @@ export const skillGroups = [
     items: [
       "Node.js",
       "NestJS",
-      "Express",
+      "Express.js",
       "FastAPI",
-      "Zod",
+      "REST APIs",
       "WebSockets",
       "JWT",
+      "Zod",
+      "Pydantic",
+      "Winston",
       "MongoDB",
+      "Mongoose",
       "MySQL",
       "Redis",
       "Firebase",
-      "FAISS",
     ],
   },
   {
-    label: "Cloud, AI, and tools",
+    label: "AI and ML",
+    items: [
+      "OpenAI, Gemini, and Anthropic APIs",
+      "LangChain",
+      "RAG",
+      "FAISS",
+      "Ollama (Llama 3.1)",
+      "Recombee",
+      "promptfoo",
+    ],
+  },
+  {
+    label: "Cloud and DevOps",
     items: [
       "AWS S3 and Rekognition",
       "Docker",
-      "GitHub Actions",
+      "GitHub Actions CI/CD",
       "Vercel",
       "TestFlight",
-      "Google Play Console",
-      "OpenAI, Gemini, Anthropic APIs",
-      "LangChain and RAG",
-      "Recombee",
+      "App Store Connect",
+      "Play Console",
+    ],
+  },
+  {
+    label: "Testing and tools",
+    items: [
       "Jest",
+      "Vitest",
+      "Playwright",
+      "pytest",
+      "Postman",
+      "Git",
+      "Xcode",
+      "Android Studio",
       "Stripe",
       "Twilio",
     ],

@@ -984,9 +984,15 @@ a.banner:hover {
   transition: filter 0.2s, border-color 0.2s, color 0.2s;
 }
 
+.brief-cta > :only-child {
+  grid-column: 1 / -1;
+}
+
 .brief-primary {
   color: var(--amber-ink) !important;
   background: linear-gradient(180deg, var(--amber-hot), var(--amber) 55%, var(--amber-deep));
+  border: 0;
+  cursor: pointer;
 }
 
 .brief-primary:hover {

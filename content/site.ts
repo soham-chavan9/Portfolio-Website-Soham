@@ -18,7 +18,9 @@ export const site = {
   email: "chavansohamwork@gmail.com",
   github: "https://github.com/soham-chavan9",
   linkedin: "https://www.linkedin.com/in/soham-chavan9/",
-  resumeHref: "/Soham_Chavan_Resume.pdf",
+  // Resume PDF is kept off the public site. Set to "/Soham_Chavan_Resume.pdf"
+  // (and add the file to public/) to bring every download link back.
+  resumeHref: null as string | null,
   location: "Boston, MA",
   profileImage: "/soham-chavan.png",
   stats: [
