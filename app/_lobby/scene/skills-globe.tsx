@@ -19,7 +19,9 @@ export const GLOBE_CENTER = new THREE.Vector3(0.34, 1.5, -2.92);
 const RADIUS = 0.44;
 /** Tile height in metres. */
 const TILE = 0.1;
-const SIGNAL = new THREE.Color("#7fd1ff");
+// Neon palette: cyan for the structure, magenta for the outer orbit.
+const SIGNAL = new THREE.Color("#19f3ff");
+const ACCENT = new THREE.Color("#ff2bd6");
 const UP = new THREE.Vector3(0, 1, 0);
 
 type SkillNode = {
@@ -149,9 +151,9 @@ function linkGeometry(nodes: SkillNode[], groupId: string) {
   return g;
 }
 
-const lineMat = (opacity: number) =>
+const lineMat = (opacity: number, color = SIGNAL) =>
   new THREE.LineBasicMaterial({
-    color: SIGNAL,
+    color,
     transparent: true,
     opacity,
     depthWrite: false,
@@ -172,6 +174,7 @@ function Globe() {
     () => ({
       shell: lineMat(0.14),
       ring: lineMat(0.32),
+      ring2: lineMat(0.36, ACCENT),
       links: groups.map(() => lineMat(0.2)),
       scan: lineMat(0.5),
       beam: new THREE.MeshBasicMaterial({
@@ -208,6 +211,7 @@ function Globe() {
       tiles.forEach((t) => t.tex.dispose());
       mats.shell.dispose();
       mats.ring.dispose();
+      mats.ring2.dispose();
       mats.scan.dispose();
       mats.beam.dispose();
       mats.core.dispose();
@@ -372,6 +376,7 @@ function Globe() {
     });
     mats.shell.opacity = 0.14 * e;
     mats.ring.opacity = 0.32 * e;
+    mats.ring2.opacity = 0.36 * e;
     mats.beam.opacity = 0.05 * e;
 
     // Hand the label's screen position to the HUD (a plain DOM element).
@@ -419,7 +424,7 @@ function Globe() {
         <sphereGeometry args={[0.035, 20, 14]} />
       </mesh>
       <lineSegments ref={ringARef} geometry={ringA} material={mats.ring} rotation={[0.32, 0, 0.18]} />
-      <lineSegments ref={ringBRef} geometry={ringB} material={mats.ring} rotation={[-0.42, 0, -0.1]} />
+      <lineSegments ref={ringBRef} geometry={ringB} material={mats.ring2} rotation={[-0.42, 0, -0.1]} />
       <lineSegments ref={scanRef} geometry={scanRing} material={mats.scan} />
       <group ref={spin} onPointerDown={onDown}>
         <lineSegments geometry={shell} material={mats.shell} />

@@ -13,6 +13,7 @@ import {
   polarToScene,
   rng,
 } from "./geo";
+import Billboards from "./billboards";
 import Landmarks from "./landmarks";
 import {
   createGroundMaterial,
@@ -141,6 +142,13 @@ function generate(): Generated {
   return { matrices, data, beacons };
 }
 
+let cached: Generated | null = null;
+/** The generated skyline, built once and shared (the billboards hang on it). */
+export function cityBuildings(): Generated {
+  cached ??= generate();
+  return cached;
+}
+
 function shoreScenePoints() {
   return manhattanShore.map(([b, km]) => polarToScene(b, km));
 }
@@ -154,7 +162,7 @@ function polygonGeometry(points: [number, number][], y: number) {
 }
 
 function Buildings() {
-  const { matrices, data, beacons } = useMemo(generate, []);
+  const { matrices, data, beacons } = useMemo(cityBuildings, []);
   const geometry = useMemo(() => {
     const g = new THREE.BoxGeometry(1, 1, 1);
     g.translate(0, 0.5, 0);
@@ -361,6 +369,7 @@ export default function City() {
     <group>
       <Ground />
       <Buildings />
+      <Billboards />
       <Landmarks />
     </group>
   );

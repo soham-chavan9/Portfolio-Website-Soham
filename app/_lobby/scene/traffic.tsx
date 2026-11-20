@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { GROUND_Y, polarToScene, rng } from "./geo";
 import { shoreScenePoints } from "./city";
 import { createLightPointsMaterial } from "./shaders";
+import { lobby, useLobby } from "../store";
 
 // Everything that moves out there: West Side Highway traffic, ferries,
 // helicopters over the river, and aircraft lining up for LaGuardia.
@@ -98,10 +99,10 @@ function Ferry({ from, to, period, offset, scale = 1 }: { from: [number, number]
   const b = useMemo(() => new THREE.Vector3(to[0], GROUND_Y, to[1]), [to]);
   const yaw = useMemo(() => Math.atan2(b.x - a.x, b.z - a.z), [a, b]);
   const windows = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: new THREE.Color(3.2, 2.4, 1.5), toneMapped: false }),
+    () => new THREE.MeshBasicMaterial({ color: new THREE.Color(0.8, 3.2, 3.6), toneMapped: false }),
     [],
   );
-  const hull = useMemo(() => new THREE.MeshStandardMaterial({ color: "#c9ccd2", roughness: 0.7 }), []);
+  const hull = useMemo(() => new THREE.MeshStandardMaterial({ color: "#2a2f45", roughness: 0.7 }), []);
   const red = useMemo(() => new THREE.MeshBasicMaterial({ color: new THREE.Color(6, 0.3, 0.2) }), []);
   const green = useMemo(() => new THREE.MeshBasicMaterial({ color: new THREE.Color(0.2, 5, 0.6) }), []);
   const wake = useMemo(
@@ -230,6 +231,107 @@ function Aircraft() {
   return <points geometry={geometry} material={material} frustumCulled={false} />;
 }
 
+const CAR_COLORS = ["#19f3ff", "#ff2bd6", "#ffd22e", "#8a5bff"].map((c) => new THREE.Color(c).multiplyScalar(4));
+
+// Skyways: flying cars ride a few looping lanes that weave between the towers
+// at different heights (CatmullRom splines, the way cinematic cyberpunk scenes
+// route their traffic), each with a hull and a short light trail along its
+// heading. One instanced draw for the hulls, one for the trails.
+const LANES = [
+  { c: [0, 14, -112], r: [142, 38], amp: 4, ph: 0 },
+  { c: [-30, 27, -142], r: [124, 30], amp: 5, ph: 1.3 },
+  { c: [42, 6, -86], r: [112, 22], amp: 2.5, ph: 2.2 },
+  { c: [0, 40, -165], r: [156, 34], amp: 6, ph: 0.7 },
+].map(({ c, r, amp, ph }) => {
+  const pts = Array.from({ length: 18 }, (_, i) => {
+    const a = (i / 18) * Math.PI * 2;
+    return new THREE.Vector3(c[0] + Math.cos(a) * r[0], c[1] + Math.sin(a * 3 + ph) * amp, c[2] + Math.sin(a) * r[1]);
+  });
+  return new THREE.CatmullRomCurve3(pts, true, "centripetal");
+});
+
+function FlyingCars() {
+  const quality = useLobby((s) => s.quality);
+  const count = quality === "high" ? 72 : 28;
+  const body = useRef<THREE.InstancedMesh>(null);
+  const trail = useRef<THREE.InstancedMesh>(null);
+  const cars = useMemo(() => {
+    const r = rng(77);
+    return Array.from({ length: count }, (_, i) => ({
+      lane: i % LANES.length,
+      u: r(),
+      // fraction of the loop per second; half the cars run the other way
+      v: (0.004 + r() * 0.006) * (r() < 0.5 ? 1 : -1),
+      side: (r() - 0.5) * 5,
+      lift: (r() - 0.5) * 2.5,
+      c: Math.floor(r() * CAR_COLORS.length),
+    }));
+  }, [count]);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const tmp = useMemo(() => ({ p: new THREE.Vector3(), t: new THREE.Vector3(), q: new THREE.Vector3() }), []);
+  const bodyMat = useMemo(() => new THREE.MeshBasicMaterial({ color: "#ffffff", toneMapped: false }), []);
+  const trailMat = useMemo(
+    () => new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0.28, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }),
+    [],
+  );
+  const geo = useMemo(() => new THREE.BoxGeometry(1, 1, 1), []);
+  useEffect(
+    () => () => {
+      bodyMat.dispose();
+      trailMat.dispose();
+      geo.dispose();
+    },
+    [bodyMat, trailMat, geo],
+  );
+  useEffect(() => {
+    const b = body.current;
+    const t = trail.current;
+    if (!b || !t) return;
+    cars.forEach((c, i) => {
+      b.setColorAt(i, CAR_COLORS[c.c]);
+      t.setColorAt(i, CAR_COLORS[c.c]);
+    });
+    if (b.instanceColor) b.instanceColor.needsUpdate = true;
+    if (t.instanceColor) t.instanceColor.needsUpdate = true;
+  }, [cars]);
+  useFrame(({ clock }, delta) => {
+    const b = body.current;
+    const t = trail.current;
+    if (!b || !t) return;
+    const moving = !lobby.get().reducedMotion;
+    const dt = Math.min(delta, 0.05);
+    const { p, t: tan, q } = tmp;
+    cars.forEach((c, i) => {
+      if (moving) c.u = (((c.u + c.v * dt) % 1) + 1) % 1;
+      const lane = LANES[c.lane];
+      lane.getPointAt(c.u, p);
+      lane.getTangentAt(c.u, tan);
+      if (c.v < 0) tan.negate();
+      // offset sideways from the lane centre so cars do not stack
+      q.set(-tan.z, 0, tan.x).normalize().multiplyScalar(c.side);
+      p.add(q);
+      p.y += c.lift + Math.sin(clock.elapsedTime * 0.7 + i) * 0.12;
+      dummy.position.copy(p);
+      dummy.lookAt(p.x + tan.x, p.y + tan.y, p.z + tan.z);
+      dummy.scale.set(0.8, 0.36, 2.4);
+      dummy.updateMatrix();
+      b.setMatrixAt(i, dummy.matrix);
+      dummy.position.addScaledVector(tan, -4.2);
+      dummy.scale.set(0.16, 0.12, 6);
+      dummy.updateMatrix();
+      t.setMatrixAt(i, dummy.matrix);
+    });
+    b.instanceMatrix.needsUpdate = true;
+    t.instanceMatrix.needsUpdate = true;
+  });
+  return (
+    <>
+      <instancedMesh key={`b${count}`} ref={body} args={[geo, bodyMat, count]} frustumCulled={false} />
+      <instancedMesh key={`t${count}`} ref={trail} args={[geo, trailMat, count]} frustumCulled={false} />
+    </>
+  );
+}
+
 export default function Traffic() {
   const ferryA = useMemo(() => {
     const to = polarToScene(136, 1.95);
@@ -246,6 +348,7 @@ export default function Traffic() {
       <Ferry from={ferryA.from} to={ferryA.to} period={150} offset={0.12} />
       <Ferry from={ferryB.from} to={ferryB.to} period={180} offset={0.55} />
       <Aircraft />
+      <FlyingCars />
     </group>
   );
 }

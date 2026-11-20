@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Saira_Condensed } from "next/font/google";
+import { Chakra_Petch, Geist, Share_Tech_Mono } from "next/font/google";
 import Link from "next/link";
 import { currentRole, resume } from "@/content/resume";
 import LobbyApp from "./_lobby/lobby-app";
@@ -15,16 +15,16 @@ const ui = Geist({
   display: "swap",
 });
 
-const num = Geist_Mono({
+const num = Share_Tech_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400"],
   variable: "--font-num",
   display: "swap",
 });
 
-const display = Saira_Condensed({
+const display = Chakra_Petch({
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  weight: ["500", "600", "700"],
   variable: "--font-display",
   display: "swap",
 });

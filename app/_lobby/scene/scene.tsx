@@ -15,13 +15,16 @@ import { Canvas, useFrame, useThree, type RootState } from "@react-three/fiber";
 import { Environment, Lightformer } from "@react-three/drei";
 import {
   Bloom,
+  ChromaticAberration,
   EffectComposer,
+  Glitch,
+  Scanline,
   Noise,
   SMAA,
   ToneMapping,
   Vignette,
 } from "@react-three/postprocessing";
-import { BlendFunction, ToneMappingMode } from "postprocessing";
+import { BlendFunction, GlitchMode, ToneMappingMode } from "postprocessing";
 import * as THREE from "three";
 import { failBoot, reportBoot } from "../boot-progress";
 import { lobby, readPref, useLobby, type Quality } from "../store";
@@ -33,6 +36,7 @@ import SkillsGlobe from "./skills-globe";
 import Operator from "./operator";
 import CameraRig from "./rig";
 import Traffic from "./traffic";
+import Rain from "./rain";
 
 export const OPERATOR_POSITION: [number, number, number] = [-0.55, 0, -2.5];
 
@@ -42,7 +46,7 @@ const CAMERA = { position: [8, 0.6, -27] as [number, number, number], fov: 34, n
 const GL = { antialias: false, powerPreference: "high-performance", stencil: false, alpha: false } as const;
 const SHADOWS = { type: THREE.PCFShadowMap };
 const onCreated = ({ gl }: RootState) => {
-  gl.setClearColor("#05070c");
+  gl.setClearColor("#07030f");
 };
 
 /**
@@ -82,12 +86,12 @@ function Lights({ quality }: { quality: Quality }) {
   }, []);
   return (
     <>
-      <hemisphereLight args={["#2a3a66", "#1a120c", 0.35]} />
+      <hemisphereLight args={["#3a1f7a", "#12081f", 0.4]} />
       <ambientLight intensity={0.06} />
       <directionalLight
         ref={moon}
-        color="#a9bdff"
-        intensity={1.1}
+        color="#8f7bff"
+        intensity={1.0}
         position={[-10, 16, -14]}
         castShadow
         shadow-mapSize={quality === "high" ? [2048, 2048] : [1024, 1024]}
@@ -101,13 +105,13 @@ function Lights({ quality }: { quality: Quality }) {
         shadow-normalBias={0.02}
       />
       {/* Manhattan's glow from across the river: the rim light on the operator */}
-      <directionalLight color="#ffc49a" intensity={0.9} position={[3, 2.5, -12]} />
-      <directionalLight color="#86a8ff" intensity={0.7} position={[-8, 3, -10]} />
+      <directionalLight color="#ff3fd0" intensity={1.1} position={[3, 2.5, -12]} />
+      <directionalLight color="#19f3ff" intensity={0.95} position={[-8, 3, -10]} />
       {/* Warm spill from the living room behind */}
       <spotLight
         ref={spill}
-        color="#ffcf9e"
-        intensity={28}
+        color="#b58cff"
+        intensity={24}
         position={[0.5, 3.3, 4.2]}
         angle={0.95}
         penumbra={0.85}
@@ -118,23 +122,59 @@ function Lights({ quality }: { quality: Quality }) {
   );
 }
 
+const CA_OFFSET = new THREE.Vector2(0.0007, 0.0006);
+const CA_GLITCH = new THREE.Vector2(0.003, 0.002);
+const GLITCH_DELAY = new THREE.Vector2(99, 99);
+const GLITCH_DURATION = new THREE.Vector2(0.25, 0.4);
+const GLITCH_STRENGTH = new THREE.Vector2(0.15, 0.3);
+
+/** True for a moment after each screen change; never under reduced motion. */
+function useTransitionGlitch() {
+  const screen = useLobby((s) => s.screen);
+  const reduced = useLobby((s) => s.reducedMotion);
+  const [on, setOn] = useState(false);
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    if (reduced) return;
+    setOn(true);
+    const id = window.setTimeout(() => setOn(false), 420);
+    return () => window.clearTimeout(id);
+  }, [screen, reduced]);
+  return on && !reduced;
+}
+
 function Effects({ quality }: { quality: Quality }) {
+  const glitch = useTransitionGlitch();
   if (quality === "low") {
     return (
       <EffectComposer key="low" multisampling={0}>
-        <Bloom mipmapBlur intensity={0.95} luminanceThreshold={0.9} luminanceSmoothing={0.25} radius={0.75} />
+        <Bloom mipmapBlur intensity={1.1} luminanceThreshold={0.85} luminanceSmoothing={0.25} radius={0.75} />
         <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
-        <Vignette offset={0.28} darkness={0.72} />
+        <Vignette offset={0.28} darkness={0.78} />
         <SMAA />
       </EffectComposer>
     );
   }
   return (
     <EffectComposer key="high" multisampling={4}>
-      <Bloom mipmapBlur intensity={0.95} luminanceThreshold={0.9} luminanceSmoothing={0.25} radius={0.75} />
+      <Bloom mipmapBlur intensity={1.25} luminanceThreshold={0.8} luminanceSmoothing={0.25} radius={0.8} />
+      <ChromaticAberration offset={glitch ? CA_GLITCH : CA_OFFSET} radialModulation={false} modulationOffset={0} />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
-      <Vignette offset={0.28} darkness={0.72} />
-      <Noise opacity={0.045} blendFunction={BlendFunction.OVERLAY} />
+      <Vignette offset={0.28} darkness={0.78} />
+      <Scanline density={1.1} opacity={0.06} blendFunction={BlendFunction.OVERLAY} />
+      <Noise opacity={0.05} blendFunction={BlendFunction.OVERLAY} />
+      <Glitch
+        active={glitch}
+        delay={GLITCH_DELAY}
+        duration={GLITCH_DURATION}
+        strength={GLITCH_STRENGTH}
+        mode={GlitchMode.SPORADIC}
+        ratio={0.85}
+      />
     </EffectComposer>
   );
 }
@@ -274,9 +314,9 @@ function ContextGuard({ onRestore }: { onRestore: () => void }) {
 const Env = memo(function Env() {
   return (
     <Environment resolution={128} frames={1} environmentIntensity={0.55}>
-      <Lightformer form="rect" intensity={2.2} color="#ffcf9e" position={[0, 2, 9]} scale={[16, 4, 1]} />
-      <Lightformer form="rect" intensity={1.4} color="#ff9e62" position={[0, 0, -40]} scale={[90, 5, 1]} />
-      <Lightformer form="rect" intensity={0.7} color="#8fb0ff" position={[-30, 4, -20]} scale={[30, 3, 1]} />
+      <Lightformer form="rect" intensity={2.2} color="#9a7bff" position={[0, 2, 9]} scale={[16, 4, 1]} />
+      <Lightformer form="rect" intensity={1.4} color="#ff2bd6" position={[0, 0, -40]} scale={[90, 5, 1]} />
+      <Lightformer form="rect" intensity={0.7} color="#19f3ff" position={[-30, 4, -20]} scale={[30, 3, 1]} />
       <Lightformer form="circle" intensity={0.4} color="#25345e" position={[0, 30, 0]} scale={24} />
     </Environment>
   );
@@ -291,6 +331,7 @@ const World = memo(function World({ quality }: { quality: Quality }) {
       <Water resolution={quality === "high" ? 640 : 320} throttle={quality === "low"} hide={near} />
       <City />
       <Traffic />
+      <Rain />
       <Lights quality={quality} />
       <group ref={near}>
         <Balcony />

@@ -501,17 +501,15 @@ export default function Balcony() {
       }),
     [],
   );
-  const edge = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#7fb5b0", transparent: true, opacity: 0.35, roughness: 0.1 }),
-    [],
-  );
+  // Neon: magenta light-pipes on the glass edges, a cyan strip at the base.
+  const edge = useMemo(() => new THREE.MeshBasicMaterial({ color: new THREE.Color(2.4, 0.35, 2.0), toneMapped: false }), []);
   const steel = useMemo(() => new THREE.MeshStandardMaterial({ color: "#c9ccd1", metalness: 1, roughness: 0.22 }), []);
   const led = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: new THREE.Color(3.2, 2.5, 1.7), toneMapped: false }),
+    () => new THREE.MeshBasicMaterial({ color: new THREE.Color(0.35, 3.0, 3.4), toneMapped: false }),
     [],
   );
   const interior = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: new THREE.Color(0.95, 0.62, 0.34), toneMapped: false }),
+    () => new THREE.MeshBasicMaterial({ color: new THREE.Color(0.62, 0.24, 0.85), toneMapped: false }),
     [],
   );
   const slatMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#5b3e28", roughness: 0.7 }), []);
@@ -601,10 +599,11 @@ export default function Balcony() {
       </mesh>
       <mesh rotation-x={-Math.PI / 2} position={[cx, 0.002, cz]} receiveShadow>
         <planeGeometry args={[width, depth]} />
-        <meshStandardMaterial map={tiles} roughness={0.3} metalness={0.05} envMapIntensity={0.9} />
+        {/* Rain-wet tiles: low roughness so the neon smears across the floor */}
+        <meshStandardMaterial map={tiles} roughness={0.14} metalness={0.15} envMapIntensity={1.3} />
       </mesh>
 
-      {/* Frameless glass railing, steel cap rail, warm LED at the base */}
+      {/* Frameless glass railing, steel cap rail, cyan LED at the base */}
       <primitive object={parts.panes} />
       <primitive object={parts.edgeStrips} />
       <primitive object={parts.baseRails} />
@@ -614,6 +613,13 @@ export default function Balcony() {
       <mesh material={steel} position={[X1, RAIL_TOP, cz]} rotation-x={Math.PI / 2}>
         <cylinderGeometry args={[0.026, 0.026, depth, 16]} />
       </mesh>
+      {/* A neon tube under the cap rail */}
+      <mesh material={led} position={[cx, RAIL_TOP - 0.045, RAIL_Z + 0.012]} rotation-z={Math.PI / 2}>
+        <cylinderGeometry args={[0.007, 0.007, width, 8]} />
+      </mesh>
+      <mesh material={edge} position={[X1 - 0.012, RAIL_TOP - 0.045, cz]} rotation-x={Math.PI / 2}>
+        <cylinderGeometry args={[0.007, 0.007, depth, 8]} />
+      </mesh>
       <mesh material={led} position={[cx, 0.012, RAIL_Z + 0.06]}>
         <boxGeometry args={[width - 0.1, 0.012, 0.02]} />
       </mesh>
@@ -621,7 +627,7 @@ export default function Balcony() {
         <boxGeometry args={[0.02, 0.012, depth - 0.1]} />
       </mesh>
 
-      {/* Apartment glass wall with warm interior behind it */}
+      {/* Apartment glass wall with a violet-lit interior behind it */}
       <group position={[0, 0, Z_BACK]}>
         <mesh material={interior} position={[cx, 1.7, 3.2]}>
           <planeGeometry args={[width, 3.4]} />
@@ -633,7 +639,7 @@ export default function Balcony() {
         {[-3.2, 0, 3.2].map((x) => (
           <mesh key={x} position={[x, 2.6, 1.6]}>
             <sphereGeometry args={[0.16, 16, 12]} />
-            <meshBasicMaterial color={new THREE.Color(4, 2.6, 1.3)} toneMapped={false} />
+            <meshBasicMaterial color={new THREE.Color(3.4, 0.8, 2.8)} toneMapped={false} />
           </mesh>
         ))}
         <mesh position={[-1.5, 0.4, 1.8]}>
@@ -660,7 +666,7 @@ export default function Balcony() {
       <group position={[X0, 0, cz]}>
         <mesh position={[-0.08, 1.6, 0]}>
           <boxGeometry args={[0.04, 3.2, depth]} />
-          <meshBasicMaterial color={new THREE.Color(0.5, 0.32, 0.16)} toneMapped={false} />
+          <meshBasicMaterial color={new THREE.Color(0.42, 0.1, 0.6)} toneMapped={false} />
         </mesh>
         <primitive object={parts.slats} />
       </group>

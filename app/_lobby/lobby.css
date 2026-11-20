@@ -6,22 +6,25 @@ html.lobby-lock,
 html.lobby-lock body {
   overflow: hidden;
   overscroll-behavior: none;
-  background: #05070c;
+  background: #07030f;
 }
 
 .lobby-root {
   /* Launch Deck design tokens (docs/redesign-plan.md, section 4). New work
      uses these; the older names below alias them until each screen is rebuilt. */
-  --ink-0: #07090e;
-  --ink-1: #0e121b;
-  --text-1: #eef1f6;
-  --text-2: #a3acbb;
-  --accent: #f2a541;
-  --accent-hot: #ffc977;
-  --accent-ink: #1b1305;
-  --signal: #7fd1ff;
-  --ok: #5fd39a;
-  --panel: rgba(14, 18, 27, 0.78);
+  /* Cyberpunk palette: one primary neon (cyan), one secondary (magenta),
+     one warning (amber), on a violet-black base. */
+  --ink-0: #07030f;
+  --ink-1: #0d0819;
+  --text-1: #eef4ff;
+  --text-2: #b4b2d0;
+  --accent: #19f3ff;
+  --accent-hot: #7dfaff;
+  --accent-ink: #021417;
+  --signal: #ff2bd6;
+  --warn: #ffd22e;
+  --ok: #5fffb0;
+  --panel: rgba(13, 8, 25, 0.8);
   --blur: 24px;
   --t-hover: 120ms;
   --t-panel: 240ms;
@@ -35,17 +38,17 @@ html.lobby-lock body {
   /* Legacy names, aliased onto the tokens above. */
   --amber: var(--accent);
   --amber-hot: var(--accent-hot);
-  --amber-deep: #e08a1e;
+  --amber-deep: #0fc4d1;
   --amber-ink: var(--accent-ink);
   --cyan: var(--signal);
   --ink: var(--text-1);
   --ink-2: #c3cad6;
   /* Dimmest text; still >= 4.5:1 over the translucent glass on a lit sky. */
   --ink-3: var(--text-2);
-  --glass: rgba(9, 13, 21, 0.62);
-  --glass-2: rgba(12, 16, 26, 0.84);
-  --line: rgba(238, 241, 246, 0.1);
-  --line-2: rgba(238, 241, 246, 0.2);
+  --glass: rgba(10, 5, 20, 0.64);
+  --glass-2: rgba(13, 8, 25, 0.86);
+  --line: rgba(25, 243, 255, 0.18);
+  --line-2: rgba(25, 243, 255, 0.38);
   --green: var(--ok);
   --c: 10px;
   --cut: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
@@ -61,7 +64,7 @@ html.lobby-lock body {
   position: fixed;
   inset: 0;
   overflow: hidden;
-  background: #05070c;
+  background: #07030f;
   color: var(--ink);
   font-family: var(--font-hud);
   font-size: 14px;
@@ -2815,4 +2818,101 @@ html.lobby-lock body {
     transition-duration: 0.01ms !important;
     transition-delay: 0s !important;
   }
+}
+
+
+/* ==========================================================================
+   Cyberpunk finish: scanlines, neon edge glow, decode reveal, jack-in boot.
+   All motion is switched off under prefers-reduced-motion.
+   ========================================================================== */
+.lobby::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 3px);
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+}
+.lobby-root :where(button, [role="tab"], .panel, .card):focus-visible {
+  outline: 2px solid var(--warn);
+  outline-offset: 2px;
+}
+.lobby-root .lb-panel,
+.lobby-root .card {
+  border-color: var(--line-2);
+  box-shadow: 0 0 0 1px rgba(25, 243, 255, 0.08), 0 0 22px rgba(255, 43, 214, 0.1);
+}
+/* Buttons: a short RGB split on hover, like a signal catching. */
+@keyframes cp-split {
+  0% { text-shadow: 2px 0 var(--signal), -2px 0 var(--accent); }
+  60% { text-shadow: -1px 0 var(--signal), 1px 0 var(--accent); }
+  100% { text-shadow: none; }
+}
+.lobby-root :where(.btn-primary, .btn-amber, .btn-line, .btn-ghost):hover {
+  animation: cp-split 260ms steps(3) both;
+}
+.lobby-root .btn-primary {
+  box-shadow: 0 0 18px rgba(25, 243, 255, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+@keyframes cp-decode {
+  0% { opacity: 0; letter-spacing: 0.35em; filter: blur(3px); transform: translateX(-6px); }
+  40% { opacity: 1; text-shadow: 2px 0 var(--signal), -2px 0 var(--accent); }
+  100% { opacity: 1; letter-spacing: inherit; filter: none; transform: none; text-shadow: none; }
+}
+.lobby-root :where(h1, h2, h3) {
+  animation: cp-decode 520ms var(--ease) both;
+  text-shadow: 0 0 14px rgba(25, 243, 255, 0.28);
+}
+@keyframes cp-flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.55; }
+  95% { opacity: 1; }
+  97% { opacity: 0.7; }
+}
+.lobby-root :where(h1) {
+  animation: cp-decode 520ms var(--ease) both, cp-flicker 7s linear infinite 1s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lobby-root :where(h1, h2, h3) { animation: none; }
+  .lobby-root :where(.btn-primary, .btn-amber, .btn-line, .btn-ghost):hover { animation: none; }
+  .lobby::after { opacity: 0.25; }
+}
+
+/* Jack-in boot screen: neon grid floor, sweep line, clipped checklist. */
+.boot {
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(255, 43, 214, 0.28), transparent 60%),
+    radial-gradient(ellipse at 50% -10%, rgba(25, 243, 255, 0.16), transparent 55%),
+    var(--ink-0);
+}
+.boot::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  box-shadow: 0 0 18px var(--accent);
+  animation: cp-sweep 3.2s linear infinite;
+  pointer-events: none;
+}
+@keyframes cp-sweep {
+  from { transform: translateY(0); }
+  to { transform: translateY(100vh); }
+}
+.boot-checks {
+  clip-path: var(--cut);
+  border: 1px solid var(--line-2);
+  background: var(--glass-2);
+}
+.boot-name {
+  color: var(--accent-hot);
+  text-shadow: 0 0 18px rgba(25, 243, 255, 0.5), 2px 0 rgba(255, 43, 214, 0.5);
+}
+@media (prefers-reduced-motion: reduce) {
+  .boot::before { animation: none; opacity: 0.4; }
 }

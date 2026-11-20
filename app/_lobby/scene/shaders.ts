@@ -2,13 +2,15 @@ import * as THREE from "three";
 
 // Night palette, in linear light (tone mapping happens in post).
 export const PALETTE = {
-  zenith: new THREE.Color(0.002, 0.0035, 0.015),
-  mid: new THREE.Color(0.006, 0.01, 0.036),
-  horizon: new THREE.Color(0.04, 0.026, 0.045),
-  glow: new THREE.Color(0.44, 0.19, 0.11),
-  haze: new THREE.Color(0.026, 0.02, 0.034),
-  warm: new THREE.Color(1.0, 0.64, 0.32),
-  cool: new THREE.Color(0.78, 0.87, 1.0),
+  // Cyberpunk night: violet sky, magenta city glow, teal-violet haze, and
+  // windows split between hot magenta-pink and electric cyan.
+  zenith: new THREE.Color(0.004, 0.002, 0.02),
+  mid: new THREE.Color(0.02, 0.006, 0.05),
+  horizon: new THREE.Color(0.1, 0.02, 0.1),
+  glow: new THREE.Color(0.55, 0.08, 0.5),
+  haze: new THREE.Color(0.02, 0.018, 0.05),
+  warm: new THREE.Color(1.0, 0.22, 0.7),
+  cool: new THREE.Color(0.15, 0.9, 1.0),
 };
 
 export const HAZE_DENSITY = 0.00068;
@@ -141,11 +143,11 @@ export function createWindowMaterial(opts: WindowOptions = {}) {
       ${common}
 
       vec3 crownColor(float k) {
-        if (k < 0.5) return vec3(1.0, 0.93, 0.82);
-        if (k < 1.5) return vec3(1.0, 0.68, 0.28);
-        if (k < 2.5) return vec3(0.38, 0.62, 1.0);
-        if (k < 3.5) return vec3(1.0, 0.3, 0.22);
-        return vec3(0.72, 0.45, 1.0);
+        if (k < 0.5) return vec3(0.35, 1.0, 1.0);
+        if (k < 1.5) return vec3(1.0, 0.8, 0.15);
+        if (k < 2.5) return vec3(0.25, 0.5, 1.0);
+        if (k < 3.5) return vec3(1.0, 0.15, 0.55);
+        return vec3(0.7, 0.3, 1.0);
       }
 
       void main() {
@@ -273,7 +275,7 @@ export function createGroundMaterial(gridAngle: number, block = [56, 16], intens
         float detail = clamp(1.2 - max(fw.x, fw.y) * 1.6, 0.0, 1.0);
         streets = mix(avg, streets, detail);
         float patchy = 0.55 + 0.9 * vnoise(vWorld.xz * 0.02);
-        vec3 lamp = vec3(1.0, 0.56, 0.24);
+        vec3 lamp = vec3(0.85, 0.2, 1.0);
         vec3 emissive = lamp * streets * patchy * uIntensity;
         vec3 base = vec3(0.012, 0.011, 0.014);
         gl_FragColor = vec4(applyHaze(base, emissive, vWorld), 1.0);
